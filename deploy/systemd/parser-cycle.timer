@@ -1,0 +1,24 @@
+# Ежедневный запуск парсинга в 07:00 по времени сервера.
+#
+# Установка:
+#   sudo cp deploy/systemd/parser-cycle.{service,timer} /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now parser-cycle.timer
+#   systemctl list-timers parser-cycle.timer
+#
+# Persistent=true — если сервер был выключен в 07:00, запуск произойдёт
+# сразу после включения (аналог настройки «догонять пропущенный запуск»).
+# Часовой пояс берётся системный: проверьте `timedatectl` (для 07:00 МСК
+# нужен Europe/Moscow).
+
+[Unit]
+Description=Daily marketplace parse at 07:00
+
+[Timer]
+OnCalendar=*-*-* 07:00:00
+Persistent=true
+AccuracySec=30s
+Unit=parser-cycle.service
+
+[Install]
+WantedBy=timers.target

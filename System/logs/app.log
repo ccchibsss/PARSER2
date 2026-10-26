@@ -1,0 +1,304 @@
+2026-10-26 14:43:31 | INFO     | services.cycle_runner:run_cycle:133 - 🚀 Запуск цикла (cli)
+2026-10-26 14:43:31 | WARNING  | services.marketplace_cycle:run_marketplace_cycle:243 - ⏭ Автоматический цикл пропущен: другой экземпляр уже работает
+2026-10-26 14:43:41 | INFO     | services.cycle_runner:run_cycle:125 - 🚀 Запуск цикла (cli)
+2026-10-26 14:43:41 | INFO     | services.marketplace_cycle:run_marketplace_cycle:257 - 🚀 Запущен единый цикл фоновой синхронизации
+2026-10-26 14:43:41 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении локальной базы склада
+2026-10-26 14:43:41 | SUCCESS  | services.cycle_runner:refresh_sklad_task:56 - 🔁 Обновление склада через update_sklad.py...
+2026-10-26 14:43:41 | INFO     | update_sklad:gen_sklad:39 - 🚀 Генерация данных со склада (Google Sheets)
+2026-10-26 14:43:41 | ERROR    | services.cycle_runner:refresh_sklad_task:79 - ❌ Ошибка при обновлении склада
+Traceback (most recent call last):
+  File "/home/user/PARSER/services/cycle_runner.py", line 60, in refresh_sklad_task
+    frame = gen_sklad()
+  File "/home/user/PARSER/update_sklad.py", line 42, in gen_sklad
+    gc = gspread.service_account(filename='System/my-python-397519-3688db4697d6.json')
+  File "/usr/local/lib/python3.13/site-packages/gspread/auth.py", line 329, in service_account
+    creds = SACredentials.from_service_account_file(filename, scopes=scopes)
+  File "/usr/local/lib/python3.13/site-packages/google/oauth2/service_account.py", line 272, in from_service_account_file
+    info, signer = _service_account_info.from_filename(
+  File "/usr/local/lib/python3.13/site-packages/google/auth/_service_account_info.py", line 77, in from_filename
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:43:41 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении локальной базы склада: FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:43:42 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:43:42 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении локальной базы склада: операция пропущена, выполнение продолжается
+2026-10-26 14:43:42 | INFO     | services.marketplace_cycle:run_stock_updates:197 - 📦 Получаем складские остатки...
+2026-10-26 14:43:42 | INFO     | stock:gen_sklad:49 - 🚀 Генерация остатков из базы данных
+2026-10-26 14:43:42 | DEBUG    | stock:gen_sklad:52 - 🔗 Подключено к базе данных: System/marketplace_base.db
+2026-10-26 14:43:42 | SUCCESS  | stock:gen_sklad:63 - 📦 Загружено 36 строк из marketplace
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1000
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1001
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1002
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1003
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1004
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1005
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1006
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1007
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1008
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1009
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1010
+2026-10-26 14:43:42 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1011
+2026-10-26 14:43:42 | SUCCESS  | stock:gen_sklad:96 - ✅ Wildberries: 12, Yandex: 12, Ozon: 0
+2026-10-26 14:43:42 | SUCCESS  | services.marketplace_cycle:run_stock_updates:199 - ✅ Остатки успешно получены
+2026-10-26 14:43:42 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении WB
+2026-10-26 14:43:42 | INFO     | stock:wb_update:108 - 📤 Отправка 12 остатков в Wildberries
+2026-10-26 14:43:42 | ERROR    | stock:wb_update:119 - ❌ Ошибка при обновлении Wildberries: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:43:42 | WARNING  | stock:wb_update:124 - Не удалось отправить Telegram-уведомление об ошибке Wildberries
+2026-10-26 14:43:42 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении WB: TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:43:42 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении WB: операция пропущена, выполнение продолжается
+2026-10-26 14:43:42 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ YANDEX выключен → отправка остатков пропущена
+2026-10-26 14:43:42 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ OZON выключен → отправка остатков пропущена
+2026-10-26 14:43:42 | WARNING  | web_app:<module>:270 - SECRET_KEY не задан: используется временный ключ процесса; сессии сбросятся после перезапуска
+2026-10-26 14:43:42 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: проверке новых заказов маркетплейсов
+2026-10-26 14:43:42 | INFO     | order_notifications:check_for_new_orders:717 - 🚦 Проверка новых заказов...
+2026-10-26 14:43:42 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Yandex выключен → проверка заказов пропущена
+2026-10-26 14:43:42 | INFO     | order_notifications:get_orders_wildberries:374 - 📥 Получаем заказы с Wildberries...
+2026-10-26 14:43:43 | WARNING  | order_notifications:get_orders_wildberries:385 - ⚠ Ошибка при запросе заказов с Wildberries: 401 — {"status":401,"statusText":"Unauthorized","title":"Unauthorized","detail":"invalid API access token: empty main token","requestId":"30bb3849a9d0ebf637b53df8cc731ebb","origin":"ag-marketplace","timestamp":"2026-10-26T14:43:43Z"}
+2026-10-26 14:43:43 | ERROR    | order_notifications:check_for_new_orders:739 - ❌ Не удалось проверить заказы Wildberries: RuntimeError: Wildberries orders HTTP 401. Продолжаем остальные площадки.
+2026-10-26 14:43:43 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Ozon выключен → проверка заказов пропущена
+2026-10-26 14:43:43 | SUCCESS  | services.marketplace_cycle:run_safe:160 - ✅ Завершено: проверке новых заказов маркетплейсов
+2026-10-26 14:43:43 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении всех цен
+2026-10-26 14:43:43 | INFO     | price_updater_master:update_all_prices:229 - ⏭ Yandex выключен → обновление цен пропущено
+2026-10-26 14:43:43 | INFO     | price_updater_master:update_all_prices:229 - ⏭ Ozon выключен → обновление цен пропущено
+2026-10-26 14:43:43 | INFO     | price_updater_master:update_wildberries:148 - 🚀 Начато обновление цен на Wildberries
+2026-10-26 14:43:43 | DEBUG    | price_updater_master:update_wildberries:157 - 📥 Загружено 12 строк из базы для Wildberries
+2026-10-26 14:43:43 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении всех цен: RuntimeError: Wildberries: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:43:43 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:43:43 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении всех цен: операция пропущена, выполнение продолжается
+2026-10-26 14:43:43 | WARNING  | services.marketplace_cycle:run_marketplace_cycle:328 - 🏁 Цикл завершён с временными ошибками отдельных этапов; время: 2.6 сек.
+2026-10-26 14:43:52 | WARNING  | web_app:<module>:270 - SECRET_KEY не задан: используется временный ключ процесса; сессии сбросятся после перезапуска
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_market:378 - 🟡 Переключение wildberries: OFF
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_market:418 - 📦 wildberries: сохранено 12 строк, остатки обнулены
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:240 - ⏭ WILDBERRIES выключен → пересчёт пропущен, нули сохраняем
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_market:378 - 🟡 Переключение wildberries: ON
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_market:440 - 🔁 wildberries: восстановлено 12 строк
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:329 - 📊 WILDBERRIES: обработано 12 строк, изменено 12
+2026-10-26 14:43:52 | SUCCESS  | services.market_controls:recompute_marketplace_core:330 - ✅ Пересчёт завершён для WILDBERRIES
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:504 - 🔁 Поставщик Okno переключён: OFF
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:523 - ⏭ YANDEX выключен → поставщика Okno не трогаем
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:523 - ⏭ OZON выключен → поставщика Okno не трогаем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:240 - ⏭ YANDEX выключен → пересчёт пропущен, нули сохраняем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:240 - ⏭ OZON выключен → пересчёт пропущен, нули сохраняем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:329 - 📊 WILDBERRIES: обработано 12 строк, изменено 7
+2026-10-26 14:43:52 | SUCCESS  | services.market_controls:recompute_marketplace_core:330 - ✅ Пересчёт завершён для WILDBERRIES
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:504 - 🔁 Поставщик Okno переключён: ON
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:523 - ⏭ YANDEX выключен → поставщика Okno не трогаем
+2026-10-26 14:43:52 | INFO     | services.market_controls:toggle_supplier:523 - ⏭ OZON выключен → поставщика Okno не трогаем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:240 - ⏭ YANDEX выключен → пересчёт пропущен, нули сохраняем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:240 - ⏭ OZON выключен → пересчёт пропущен, нули сохраняем
+2026-10-26 14:43:52 | INFO     | services.market_controls:recompute_marketplace_core:329 - 📊 WILDBERRIES: обработано 12 строк, изменено 0
+2026-10-26 14:43:52 | SUCCESS  | services.market_controls:recompute_marketplace_core:330 - ✅ Пересчёт завершён для WILDBERRIES
+2026-10-26 14:43:58 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 07:00
+2026-10-26 14:43:58 | INFO     | streamlit_scheduler:get_scheduler:88 - 📅 Планировщик Streamlit запущен: каждый день в 07:00 (Europe/Moscow)
+2026-10-26 14:43:58 | WARNING  | streamlit_scheduler:start_catch_up_if_needed:152 - ⏱ Пропущен плановый запуск 26.10.2026 07:00 → выполняю догон
+2026-10-26 14:43:58 | INFO     | services.cycle_runner:run_cycle:125 - 🚀 Запуск цикла (catch-up)
+2026-10-26 14:43:58 | INFO     | services.marketplace_cycle:run_marketplace_cycle:257 - 🚀 Запущен единый цикл фоновой синхронизации
+2026-10-26 14:43:58 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении локальной базы склада
+2026-10-26 14:43:58 | SUCCESS  | services.cycle_runner:refresh_sklad_task:56 - 🔁 Обновление склада через update_sklad.py...
+2026-10-26 14:43:58 | INFO     | update_sklad:gen_sklad:39 - 🚀 Генерация данных со склада (Google Sheets)
+2026-10-26 14:43:58 | ERROR    | services.cycle_runner:refresh_sklad_task:79 - ❌ Ошибка при обновлении склада
+Traceback (most recent call last):
+  File "/home/user/PARSER/services/cycle_runner.py", line 60, in refresh_sklad_task
+    frame = gen_sklad()
+  File "/home/user/PARSER/update_sklad.py", line 42, in gen_sklad
+    gc = gspread.service_account(filename='System/my-python-397519-3688db4697d6.json')
+  File "/usr/local/lib/python3.13/site-packages/gspread/auth.py", line 329, in service_account
+    creds = SACredentials.from_service_account_file(filename, scopes=scopes)
+  File "/usr/local/lib/python3.13/site-packages/google/oauth2/service_account.py", line 272, in from_service_account_file
+    info, signer = _service_account_info.from_filename(
+  File "/usr/local/lib/python3.13/site-packages/google/auth/_service_account_info.py", line 77, in from_filename
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:43:58 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении локальной базы склада: FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:43:59 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:43:59 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении локальной базы склада: операция пропущена, выполнение продолжается
+2026-10-26 14:43:59 | INFO     | services.marketplace_cycle:run_stock_updates:197 - 📦 Получаем складские остатки...
+2026-10-26 14:43:59 | INFO     | stock:gen_sklad:49 - 🚀 Генерация остатков из базы данных
+2026-10-26 14:43:59 | DEBUG    | stock:gen_sklad:52 - 🔗 Подключено к базе данных: System/marketplace_base.db
+2026-10-26 14:43:59 | SUCCESS  | stock:gen_sklad:63 - 📦 Загружено 36 строк из marketplace
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1000
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1001
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1002
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1003
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1004
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1005
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1006
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1007
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1008
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1009
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1010
+2026-10-26 14:43:59 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1011
+2026-10-26 14:43:59 | SUCCESS  | stock:gen_sklad:96 - ✅ Wildberries: 12, Yandex: 12, Ozon: 0
+2026-10-26 14:43:59 | SUCCESS  | services.marketplace_cycle:run_stock_updates:199 - ✅ Остатки успешно получены
+2026-10-26 14:43:59 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении WB
+2026-10-26 14:43:59 | INFO     | stock:wb_update:108 - 📤 Отправка 12 остатков в Wildberries
+2026-10-26 14:43:59 | ERROR    | stock:wb_update:119 - ❌ Ошибка при обновлении Wildberries: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:43:59 | WARNING  | stock:wb_update:124 - Не удалось отправить Telegram-уведомление об ошибке Wildberries
+2026-10-26 14:43:59 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении WB: TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:43:59 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении WB: операция пропущена, выполнение продолжается
+2026-10-26 14:43:59 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ YANDEX выключен → отправка остатков пропущена
+2026-10-26 14:43:59 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ OZON выключен → отправка остатков пропущена
+2026-10-26 14:43:59 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: проверке новых заказов маркетплейсов
+2026-10-26 14:43:59 | INFO     | order_notifications:check_for_new_orders:717 - 🚦 Проверка новых заказов...
+2026-10-26 14:43:59 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Yandex выключен → проверка заказов пропущена
+2026-10-26 14:43:59 | INFO     | order_notifications:get_orders_wildberries:374 - 📥 Получаем заказы с Wildberries...
+2026-10-26 14:43:59 | INFO     | streamlit_scheduler:shutdown_scheduler:168 - 📴 Планировщик остановлен
+2026-10-26 14:44:06 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 07:00
+2026-10-26 14:44:06 | INFO     | streamlit_scheduler:get_scheduler:88 - 📅 Планировщик Streamlit запущен: каждый день в 07:00 (Europe/Moscow)
+2026-10-26 14:44:06 | WARNING  | streamlit_scheduler:start_catch_up_if_needed:152 - ⏱ Пропущен плановый запуск 26.10.2026 07:00 → выполняю догон
+2026-10-26 14:44:06 | INFO     | services.cycle_runner:run_cycle:125 - 🚀 Запуск цикла (catch-up)
+2026-10-26 14:44:06 | INFO     | services.marketplace_cycle:run_marketplace_cycle:257 - 🚀 Запущен единый цикл фоновой синхронизации
+2026-10-26 14:44:06 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении локальной базы склада
+2026-10-26 14:44:07 | SUCCESS  | services.cycle_runner:refresh_sklad_task:56 - 🔁 Обновление склада через update_sklad.py...
+2026-10-26 14:44:07 | INFO     | update_sklad:gen_sklad:39 - 🚀 Генерация данных со склада (Google Sheets)
+2026-10-26 14:44:07 | ERROR    | services.cycle_runner:refresh_sklad_task:79 - ❌ Ошибка при обновлении склада
+Traceback (most recent call last):
+  File "/home/user/PARSER/services/cycle_runner.py", line 60, in refresh_sklad_task
+    frame = gen_sklad()
+  File "/home/user/PARSER/update_sklad.py", line 42, in gen_sklad
+    gc = gspread.service_account(filename='System/my-python-397519-3688db4697d6.json')
+  File "/usr/local/lib/python3.13/site-packages/gspread/auth.py", line 329, in service_account
+    creds = SACredentials.from_service_account_file(filename, scopes=scopes)
+  File "/usr/local/lib/python3.13/site-packages/google/oauth2/service_account.py", line 272, in from_service_account_file
+    info, signer = _service_account_info.from_filename(
+  File "/usr/local/lib/python3.13/site-packages/google/auth/_service_account_info.py", line 77, in from_filename
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:44:07 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении локальной базы склада: FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:44:07 | INFO     | streamlit_scheduler:shutdown_scheduler:168 - 📴 Планировщик остановлен
+2026-10-26 14:44:13 | INFO     | services.parse_schedule:save_schedule:125 - 🗓 Расписание сохранено: вкл, 17:45, дни mon,tue,wed,thu,fri,sat,sun, Europe/Moscow
+2026-10-26 14:44:13 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 26.10.2026 17:45
+2026-10-26 14:44:13 | INFO     | streamlit_scheduler:get_scheduler:88 - 📅 Планировщик Streamlit запущен: каждый день в 17:45 (Europe/Moscow)
+2026-10-26 14:45:00 | INFO     | streamlit_scheduler:_scheduled_job:45 - ⏰ Плановый запуск: ежедневный парсинг маркетплейсов
+2026-10-26 14:45:00 | INFO     | services.cycle_runner:run_cycle:125 - 🚀 Запуск цикла (scheduler)
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_marketplace_cycle:257 - 🚀 Запущен единый цикл фоновой синхронизации
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении локальной базы склада
+2026-10-26 14:45:00 | SUCCESS  | services.cycle_runner:refresh_sklad_task:56 - 🔁 Обновление склада через update_sklad.py...
+2026-10-26 14:45:00 | INFO     | update_sklad:gen_sklad:39 - 🚀 Генерация данных со склада (Google Sheets)
+2026-10-26 14:45:00 | ERROR    | services.cycle_runner:refresh_sklad_task:79 - ❌ Ошибка при обновлении склада
+Traceback (most recent call last):
+  File "/home/user/PARSER/services/cycle_runner.py", line 60, in refresh_sklad_task
+    frame = gen_sklad()
+  File "/home/user/PARSER/update_sklad.py", line 42, in gen_sklad
+    gc = gspread.service_account(filename='System/my-python-397519-3688db4697d6.json')
+  File "/usr/local/lib/python3.13/site-packages/gspread/auth.py", line 329, in service_account
+    creds = SACredentials.from_service_account_file(filename, scopes=scopes)
+  File "/usr/local/lib/python3.13/site-packages/google/oauth2/service_account.py", line 272, in from_service_account_file
+    info, signer = _service_account_info.from_filename(
+  File "/usr/local/lib/python3.13/site-packages/google/auth/_service_account_info.py", line 77, in from_filename
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:45:00 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении локальной базы склада: FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:45:00 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:45:00 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении локальной базы склада: операция пропущена, выполнение продолжается
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_stock_updates:197 - 📦 Получаем складские остатки...
+2026-10-26 14:45:00 | INFO     | stock:gen_sklad:49 - 🚀 Генерация остатков из базы данных
+2026-10-26 14:45:00 | DEBUG    | stock:gen_sklad:52 - 🔗 Подключено к базе данных: System/marketplace_base.db
+2026-10-26 14:45:00 | SUCCESS  | stock:gen_sklad:63 - 📦 Загружено 36 строк из marketplace
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1000
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1001
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1002
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1003
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1004
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1005
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1006
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1007
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1008
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1009
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1010
+2026-10-26 14:45:00 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1011
+2026-10-26 14:45:00 | SUCCESS  | stock:gen_sklad:96 - ✅ Wildberries: 12, Yandex: 12, Ozon: 0
+2026-10-26 14:45:00 | SUCCESS  | services.marketplace_cycle:run_stock_updates:199 - ✅ Остатки успешно получены
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении WB
+2026-10-26 14:45:00 | INFO     | stock:wb_update:108 - 📤 Отправка 12 остатков в Wildberries
+2026-10-26 14:45:00 | ERROR    | stock:wb_update:119 - ❌ Ошибка при обновлении Wildberries: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:45:00 | WARNING  | stock:wb_update:124 - Не удалось отправить Telegram-уведомление об ошибке Wildberries
+2026-10-26 14:45:00 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении WB: TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:45:00 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении WB: операция пропущена, выполнение продолжается
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ YANDEX выключен → отправка остатков пропущена
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ OZON выключен → отправка остатков пропущена
+2026-10-26 14:45:00 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: проверке новых заказов маркетплейсов
+2026-10-26 14:45:00 | INFO     | order_notifications:check_for_new_orders:717 - 🚦 Проверка новых заказов...
+2026-10-26 14:45:00 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Yandex выключен → проверка заказов пропущена
+2026-10-26 14:45:00 | INFO     | order_notifications:get_orders_wildberries:374 - 📥 Получаем заказы с Wildberries...
+2026-10-26 14:45:01 | WARNING  | order_notifications:get_orders_wildberries:385 - ⚠ Ошибка при запросе заказов с Wildberries: 401 — {"status":401,"statusText":"Unauthorized","title":"Unauthorized","detail":"invalid API access token: empty main token","requestId":"cb32bc2693cf03fc3826a56ef2dc432d","origin":"ag-marketplace","timestamp":"2026-10-26T14:45:01Z"}
+2026-10-26 14:45:01 | ERROR    | order_notifications:check_for_new_orders:739 - ❌ Не удалось проверить заказы Wildberries: RuntimeError: Wildberries orders HTTP 401. Продолжаем остальные площадки.
+2026-10-26 14:45:01 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Ozon выключен → проверка заказов пропущена
+2026-10-26 14:45:01 | SUCCESS  | services.marketplace_cycle:run_safe:160 - ✅ Завершено: проверке новых заказов маркетплейсов
+2026-10-26 14:45:02 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении всех цен
+2026-10-26 14:45:02 | INFO     | price_updater_master:update_all_prices:229 - ⏭ Yandex выключен → обновление цен пропущено
+2026-10-26 14:45:02 | INFO     | price_updater_master:update_all_prices:229 - ⏭ Ozon выключен → обновление цен пропущено
+2026-10-26 14:45:02 | INFO     | price_updater_master:update_wildberries:148 - 🚀 Начато обновление цен на Wildberries
+2026-10-26 14:45:02 | DEBUG    | price_updater_master:update_wildberries:157 - 📥 Загружено 12 строк из базы для Wildberries
+2026-10-26 14:45:02 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении всех цен: RuntimeError: Wildberries: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:45:02 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:45:02 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении всех цен: операция пропущена, выполнение продолжается
+2026-10-26 14:45:02 | WARNING  | services.marketplace_cycle:run_marketplace_cycle:328 - 🏁 Цикл завершён с временными ошибками отдельных этапов; время: 2.0 сек.
+2026-10-26 14:45:02 | INFO     | streamlit_scheduler:_scheduled_job:47 - ⏰ Плановый запуск завершён: partial — Цикл завершён с временными ошибками отдельных этапов
+2026-10-26 14:45:03 | INFO     | services.parse_schedule:save_schedule:125 - 🗓 Расписание сохранено: вкл, 07:00, дни mon,tue,wed,thu,fri,sat,sun, Europe/Moscow
+2026-10-26 14:45:03 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 07:00
+2026-10-26 14:45:03 | INFO     | streamlit_scheduler:shutdown_scheduler:168 - 📴 Планировщик остановлен
+2026-10-26 14:45:54 | WARNING  | web_app:<module>:270 - SECRET_KEY не задан: используется временный ключ процесса; сессии сбросятся после перезапуска
+2026-10-26 14:45:54 | INFO     | web_app:ensure_scheduler_started:1800 - 📅 Запущен единый цикл фоновой синхронизации (склад, остатки, заказы и цены — каждые 5 мин.)
+2026-10-26 14:46:01 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 07:00
+2026-10-26 14:46:01 | INFO     | streamlit_scheduler:get_scheduler:88 - 📅 Планировщик Streamlit запущен: каждый день в 07:00 (Europe/Moscow)
+2026-10-26 14:46:01 | WARNING  | streamlit_scheduler:start_catch_up_if_needed:152 - ⏱ Пропущен плановый запуск 26.10.2026 07:00 → выполняю догон
+2026-10-26 14:46:01 | INFO     | services.cycle_runner:run_cycle:125 - 🚀 Запуск цикла (catch-up)
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_marketplace_cycle:257 - 🚀 Запущен единый цикл фоновой синхронизации
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении локальной базы склада
+2026-10-26 14:46:01 | SUCCESS  | services.cycle_runner:refresh_sklad_task:56 - 🔁 Обновление склада через update_sklad.py...
+2026-10-26 14:46:01 | INFO     | update_sklad:gen_sklad:39 - 🚀 Генерация данных со склада (Google Sheets)
+2026-10-26 14:46:01 | ERROR    | services.cycle_runner:refresh_sklad_task:79 - ❌ Ошибка при обновлении склада
+Traceback (most recent call last):
+  File "/home/user/PARSER/services/cycle_runner.py", line 60, in refresh_sklad_task
+    frame = gen_sklad()
+  File "/home/user/PARSER/update_sklad.py", line 42, in gen_sklad
+    gc = gspread.service_account(filename='System/my-python-397519-3688db4697d6.json')
+  File "/usr/local/lib/python3.13/site-packages/gspread/auth.py", line 329, in service_account
+    creds = SACredentials.from_service_account_file(filename, scopes=scopes)
+  File "/usr/local/lib/python3.13/site-packages/google/oauth2/service_account.py", line 272, in from_service_account_file
+    info, signer = _service_account_info.from_filename(
+  File "/usr/local/lib/python3.13/site-packages/google/auth/_service_account_info.py", line 77, in from_filename
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:46:01 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении локальной базы склада: FileNotFoundError: [Errno 2] No such file or directory: 'System/my-python-397519-3688db4697d6.json'
+2026-10-26 14:46:01 | WARNING  | services.marketplace_cycle:run_safe:173 - Не удалось отправить Telegram-уведомление: BadArguments: Error with sent data: 'chat_id.str': Input should be a valid string
+2026-10-26 14:46:01 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении локальной базы склада: операция пропущена, выполнение продолжается
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_stock_updates:197 - 📦 Получаем складские остатки...
+2026-10-26 14:46:01 | INFO     | stock:gen_sklad:49 - 🚀 Генерация остатков из базы данных
+2026-10-26 14:46:01 | DEBUG    | stock:gen_sklad:52 - 🔗 Подключено к базе данных: System/marketplace_base.db
+2026-10-26 14:46:01 | SUCCESS  | stock:gen_sklad:63 - 📦 Загружено 36 строк из marketplace
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1000
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1001
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1002
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1003
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1004
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1005
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1006
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1007
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1008
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1009
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1010
+2026-10-26 14:46:01 | WARNING  | stock:gen_sklad:86 - ⛔ Некорректный product_id для OZON: SKL1011
+2026-10-26 14:46:01 | SUCCESS  | stock:gen_sklad:96 - ✅ Wildberries: 12, Yandex: 12, Ozon: 0
+2026-10-26 14:46:01 | SUCCESS  | services.marketplace_cycle:run_stock_updates:199 - ✅ Остатки успешно получены
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: обновлении WB
+2026-10-26 14:46:01 | INFO     | stock:wb_update:108 - 📤 Отправка 12 остатков в Wildberries
+2026-10-26 14:46:01 | ERROR    | stock:wb_update:119 - ❌ Ошибка при обновлении Wildberries: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:46:01 | WARNING  | stock:wb_update:124 - Не удалось отправить Telegram-уведомление об ошибке Wildberries
+2026-10-26 14:46:01 | ERROR    | services.marketplace_cycle:run_safe:163 - ❌ Ошибка при обновлении WB: TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+2026-10-26 14:46:01 | WARNING  | services.marketplace_cycle:run_safe:177 - ⚠️ обновлении WB: операция пропущена, выполнение продолжается
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ YANDEX выключен → отправка остатков пропущена
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_stock_updates:216 - ⏭ OZON выключен → отправка остатков пропущена
+2026-10-26 14:46:01 | INFO     | services.marketplace_cycle:run_safe:158 - ▶ Начало: проверке новых заказов маркетплейсов
+2026-10-26 14:46:01 | INFO     | order_notifications:check_for_new_orders:717 - 🚦 Проверка новых заказов...
+2026-10-26 14:46:01 | INFO     | order_notifications:check_for_new_orders:728 - ⏭ Yandex выключен → проверка заказов пропущена
+2026-10-26 14:46:01 | INFO     | order_notifications:get_orders_wildberries:374 - 📥 Получаем заказы с Wildberries...
+2026-10-26 14:46:01 | INFO     | services.parse_schedule:save_schedule:125 - 🗓 Расписание сохранено: вкл, 06:45, дни mon,tue,wed,thu,fri,sat,sun, Europe/Moscow
+2026-10-26 14:46:01 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 06:45
+2026-10-26 14:46:01 | INFO     | services.market_controls:recompute_marketplace_core:329 - 📊 WILDBERRIES: обработано 12 строк, изменено 1
+2026-10-26 14:46:01 | SUCCESS  | services.market_controls:recompute_marketplace_core:330 - ✅ Пересчёт завершён для WILDBERRIES
+2026-10-26 14:46:01 | INFO     | services.parse_schedule:save_schedule:125 - 🗓 Расписание сохранено: вкл, 07:00, дни mon,tue,wed,thu,fri,sat,sun, Europe/Moscow
+2026-10-26 14:46:01 | INFO     | streamlit_scheduler:shutdown_scheduler:168 - 📴 Планировщик остановлен
+2026-10-26 14:46:13 | INFO     | streamlit_scheduler:apply_schedule:122 - 🗓 Задача парсинга запланирована: ближайший запуск 27.10.2026 07:00
+2026-10-26 14:46:13 | INFO     | streamlit_scheduler:get_scheduler:88 - 📅 Планировщик Streamlit запущен: каждый день в 07:00 (Europe/Moscow)
+2026-10-26 14:46:14 | INFO     | streamlit_scheduler:shutdown_scheduler:168 - 📴 Планировщик остановлен

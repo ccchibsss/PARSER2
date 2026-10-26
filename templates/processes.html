@@ -1,0 +1,151 @@
+{% extends "control_base.html" %}
+{% block title %}Процессы — YMWB{% endblock %}
+{% block page_code %}processes{% endblock %}
+{% block content %}
+<section class="control-hero">
+  <div>
+    <p class="control-eyebrow">Автоматизация</p>
+    <h1>Внутренние процессы</h1>
+    <p>Состояние синхронизации, расписания и ручной запуск операций.</p>
+  </div>
+  <div class="hero-actions">
+
+    <button class="control-button primary" id="run-full-cycle">Запустить полный цикл</button>
+  </div>
+</section>
+
+
+<section class="process-settings-grid" aria-label="Ключевые настройки">
+    <article class="control-card">
+      <div class="settings-card-heading">
+        <img class="settings-card-icon" src="{{ url_for('static', filename='images/processes/trolley.png') }}" alt="" aria-hidden="true">
+        <div>
+          <p class="control-eyebrow">Каналы продаж</p>
+          <h2>Маркетплейсы</h2>
+        </div>
+      </div>
+      <div class="market-state-list" id="market-state-list"></div>
+      <div class="market-card-footer">
+        <p class="field-help">Выключение площадки и пауза автоматизации — разные операции.</p>
+        <a class="control-button secondary market-new-products" href="{{ url_for('download_unlisted') }}">Новые товары</a>
+      </div>
+    </article>
+
+    <article class="control-card schedule-settings-card" id="process-market-schedule">
+      <div class="card-heading-row">
+        <div class="settings-card-heading">
+          <img class="settings-card-icon" src="{{ url_for('static', filename='images/processes/7-days.png') }}" alt="" aria-hidden="true">
+          <div>
+            <p class="control-eyebrow">Расписание WB</p>
+            <h2>Недельный режим</h2>
+          </div>
+        </div>
+        <div class="schedule-toggle-group">
+          <span id="process-schedule-status">—</span>
+          <label class="market-switch schedule-toggle" title="Включить или выключить недельное расписание Wildberries">
+            <input id="process-schedule-enabled" type="checkbox">
+            <i></i>
+          </label>
+        </div>
+      </div>
+
+      <div class="process-schedule-fields">
+        <div class="process-schedule-row">
+          <span class="schedule-action schedule-action-off">OFF</span>
+          <select id="process-schedule-off-day" aria-label="День выключения Wildberries"></select>
+          <label class="time-picker-shell process-time-picker"
+                 tabindex="0" role="button" aria-haspopup="listbox" aria-expanded="false"
+                 aria-label="Выбрать время выключения Wildberries">
+            <span class="time-picker-value" aria-hidden="true">—</span>
+            <input type="hidden" class="time-picker-storage" id="process-schedule-off-time" aria-label="Время выключения Wildberries">
+          </label>
+        </div>
+        <div class="process-schedule-row">
+          <span class="schedule-action schedule-action-on">ON</span>
+          <select id="process-schedule-on-day" aria-label="День включения Wildberries"></select>
+          <label class="time-picker-shell process-time-picker"
+                 tabindex="0" role="button" aria-haspopup="listbox" aria-expanded="false"
+                 aria-label="Выбрать время включения Wildberries">
+            <span class="time-picker-value" aria-hidden="true">—</span>
+            <input type="hidden" class="time-picker-storage" id="process-schedule-on-time" aria-label="Время включения Wildberries">
+          </label>
+        </div>
+      </div>
+
+      <div class="schedule-next-event">
+        <small>Ближайшее событие</small>
+        <strong class="schedule-message" id="schedule-message">Получаем расписание…</strong>
+      </div>
+      <button class="control-button primary schedule-save-button" id="save-market-schedule" disabled>Сохранить расписание</button>
+    </article>
+
+    <article class="control-card settings-card">
+      <div class="card-heading-row">
+        <div class="settings-card-heading">
+          <img class="settings-card-icon" src="{{ url_for('static', filename='images/processes/work-process.png') }}" alt="" aria-hidden="true">
+          <div>
+            <p class="control-eyebrow">Настройки</p>
+            <h2>Полный цикл</h2>
+          </div>
+        </div>
+        <div class="cycle-automation-control" id="cycle-automation-control">
+          <span class="cycle-automation-copy">
+            <small>Автосинхронизация</small>
+            <strong id="cycle-enabled-label">—</strong>
+          </span>
+          <label class="market-switch" title="Включить или приостановить автосинхронизацию">
+            <input id="cycle-enabled" type="checkbox">
+            <i></i>
+          </label>
+        </div>
+      </div>
+      <div class="cycle-run-summary">
+        <div>
+          <small>Последний запуск</small>
+          <strong id="last-cycle">—</strong>
+        </div>
+        <div>
+          <small>Следующий запуск</small>
+          <strong id="next-cycle">—</strong>
+        </div>
+      </div>
+      <label class="field-label" for="cycle-interval">Интервал запуска, минут</label>
+      <div class="interval-row">
+        <input id="cycle-interval" type="number" min="1" max="60" step="1">
+        <button class="control-button secondary" id="save-cycle-interval">Сохранить</button>
+      </div>
+      <p class="field-help">Изменение применяется к следующему плановому запуску.</p>
+    </article>
+  </section>
+
+<div class="control-layout process-content-layout">
+  <section>
+    <div class="section-heading">
+      <div>
+        <p class="control-eyebrow">Исполнение</p>
+        <h2>Процессы и этапы</h2>
+      </div>
+    </div>
+    <div class="process-grid" id="process-grid">
+      <div class="empty-state">Получаем состояние процессов…</div>
+    </div>
+  </section>
+</div>
+
+<section class="control-section">
+  <div class="section-heading">
+    <div>
+      <p class="control-eyebrow">История</p>
+      <h2>Последние запуски</h2>
+    </div>
+  </div>
+  <div class="control-table-wrap">
+    <table class="control-table">
+      <thead>
+        <tr><th>Процесс</th><th>Запуск</th><th>Начало</th><th>Длительность</th><th>Результат</th><th>Сообщение</th></tr>
+      </thead>
+      <tbody id="process-runs"></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

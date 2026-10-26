@@ -1,0 +1,245 @@
+{% extends "control_base.html" %}
+{% block title %}Статистика — YMWB{% endblock %}
+{% block page_code %}statistics{% endblock %}
+{% block content %}
+<section class="control-hero">
+  <div>
+    <p class="control-eyebrow">Аналитика</p>
+    <h1>Статистика размещения</h1>
+    <p>Сводка товаров, поставщиков и расхождений между маркетплейсами.</p>
+  </div>
+</section>
+
+<section class="statistics-summary" aria-label="Ключевые показатели">
+  <article class="statistics-metric">
+    <span>Товаров в каталоге</span>
+    <strong>{{ stats_data|length }}</strong>
+  </article>
+  <article class="statistics-metric {{ 'warning' if errors else 'success' }}">
+    <span>Расхождений</span>
+    <strong>{{ errors|length }}</strong>
+  </article>
+  <article class="statistics-metric">
+    <span>Поставщиков</span>
+    <strong>{{ supplier_stats|length }}</strong>
+  </article>
+</section>
+
+<nav class="statistics-tabs" aria-label="Разделы статистики" role="tablist">
+  <button class="statistics-tab active" type="button" data-statistics-tab="errors">Расхождения</button>
+  <button class="statistics-tab" type="button" data-statistics-tab="products">Товары</button>
+  <button class="statistics-tab" type="button" data-statistics-tab="suppliers">Поставщики</button>
+</nav>
+
+<section id="errors" class="statistics-panel active" role="tabpanel">
+  <div class="statistics-panel-card">
+    <header class="statistics-panel-heading">
+      <div>
+        <h2>Расхождения между маркетплейсами</h2>
+        <p>Поля, значения которых отличаются у одной модели на разных площадках.</p>
+      </div>
+      <span class="statistics-count {{ 'warning' if errors else '' }}">{{ errors|length }} записей</span>
+    </header>
+
+    {% if errors %}
+    <div class="statistics-table-wrap">
+      <table class="control-table statistics-table discrepancy-statistics-table">
+        <colgroup>
+          <col class="discrepancy-market-column">
+          <col class="discrepancy-code-column" span="4">
+          <col class="discrepancy-model-column">
+          <col class="discrepancy-status-column">
+          <col class="discrepancy-value-column" span="2">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Маркетплейс</th>
+            <th>Sklad</th>
+            <th>Invask</th>
+            <th>Okno</th>
+            <th>United</th>
+            <th class="text-left">Модель</th>
+            <th>Статус</th>
+            <th>Нал</th>
+            <th>Опт</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for error in errors %}
+          <tr>
+            <td><strong>{{ error['Маркетплейс'] }}</strong></td>
+            <td class="{% if error.diff['Sklad'] %}diff-cell{% endif %}">{{ error['Sklad'] or '' }}</td>
+            <td class="{% if error.diff['Invask'] %}diff-cell{% endif %}">{{ error['Invask'] or '' }}</td>
+            <td class="{% if error.diff['Okno'] %}diff-cell{% endif %}">{{ error['Okno'] or '' }}</td>
+            <td class="{% if error.diff['United'] %}diff-cell{% endif %}">{{ error['United'] or '' }}</td>
+            <td class="text-left {% if error.diff['Модель'] %}diff-cell{% endif %}" title="{{ error['Модель'] }}">{{ error['Модель'] }}</td>
+            <td class="{% if error.diff['Статус'] %}diff-cell{% endif %}">{{ error['Статус'] }}</td>
+            <td class="{% if error.diff['Нал'] %}diff-cell{% endif %}">{{ error['Нал'] }}</td>
+            <td class="{% if error.diff['Опт'] %}diff-cell{% endif %}">{{ error['Опт'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="statistics-empty">
+      <i>✓</i>
+      <strong>Расхождений не найдено</strong>
+      <p>Данные товаров совпадают на всех площадках.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section id="products" class="statistics-panel" role="tabpanel">
+  <div class="statistics-panel-card">
+    <header class="statistics-panel-heading">
+      <div>
+        <h2>Размещение товаров</h2>
+        <p>Присутствие каждой модели на Yandex, Ozon и Wildberries.</p>
+      </div>
+      <span class="statistics-count">{{ stats_data|length }} товаров</span>
+    </header>
+    <div class="statistics-table-wrap">
+      <table class="control-table statistics-table product-statistics-table" id="products-table">
+        <colgroup>
+          <col class="product-index-column">
+          <col class="product-sklad-column">
+          <col class="product-model-column">
+          <col class="product-market-column" span="3">
+        </colgroup>
+        <thead>
+          <tr>
+            <th data-sort="0">№</th>
+            <th data-sort="1">Sklad</th>
+            <th class="text-left" data-sort="2">Модель</th>
+            <th data-sort="3">Yandex</th>
+            <th data-sort="4">Ozon</th>
+            <th data-sort="5">Wildberries</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in stats_data %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ row['Sklad'] }}</strong></td>
+            <td class="text-left" title="{{ row['Модель'] or '' }}">{{ row['Модель'] or '' }}</td>
+            <td>
+              {% if row['Yandex'] %}
+                <span class="market-check {% if row.get('Статус_Yandex') == 'выкл.' %}disabled{% endif %}"
+                      title="{{ 'Размещение выключено' if row.get('Статус_Yandex') == 'выкл.' else 'Размещено' }}">
+                  {{ '−' if row.get('Статус_Yandex') == 'выкл.' else '✓' }}
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row['Ozon'] %}
+                <span class="market-check {% if row.get('Статус_Ozon') == 'выкл.' %}disabled{% endif %}"
+                      title="{{ 'Размещение выключено' if row.get('Статус_Ozon') == 'выкл.' else 'Размещено' }}">
+                  {{ '−' if row.get('Статус_Ozon') == 'выкл.' else '✓' }}
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row['Wildberries'] %}
+                <span class="market-check {% if row.get('Статус_Wildberries') == 'выкл.' %}disabled{% endif %}"
+                      title="{{ 'Размещение выключено' if row.get('Статус_Wildberries') == 'выкл.' else 'Размещено' }}">
+                  {{ '−' if row.get('Статус_Wildberries') == 'выкл.' else '✓' }}
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="suppliers" class="statistics-panel" role="tabpanel">
+  <div class="statistics-panel-card">
+    <header class="statistics-panel-heading">
+      <div>
+        <h2>Статистика по поставщикам</h2>
+        <p>Количество размещений и активных товаров по каждому источнику.</p>
+      </div>
+      <span class="statistics-count">{{ supplier_stats|length }} поставщика</span>
+    </header>
+    <div class="statistics-table-wrap">
+      <table class="control-table statistics-table supplier-statistics-table">
+        <colgroup>
+          <col class="supplier-name-column">
+          <col class="supplier-metric-column" span="6">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="text-left">Поставщик</th>
+            <th>Yandex</th>
+            <th>Ozon</th>
+            <th>Wildberries</th>
+            <th>Всего</th>
+            <th>Активно</th>
+            <th>Неактивно</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for supplier, data in supplier_stats.items() %}
+          <tr>
+            <td class="text-left"><strong>{{ supplier }}</strong></td>
+            <td>{{ data['Yandex'] }}</td>
+            <td>{{ data['Ozon'] }}</td>
+            <td>{{ data['Wildberries'] }}</td>
+            <td class="highlight-total">{{ data['Всего'] }}</td>
+            <td>{{ data['Активно'] }}</td>
+            <td>{{ data['Неактивно'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const tabs = [...document.querySelectorAll("[data-statistics-tab]")];
+  const panels = [...document.querySelectorAll(".statistics-panel")];
+
+  function showTab(tabId) {
+    if (!panels.some(panel => panel.id === tabId)) tabId = "errors";
+    tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.statisticsTab === tabId));
+    panels.forEach(panel => panel.classList.toggle("active", panel.id === tabId));
+    localStorage.setItem("statisticsActiveTab", tabId);
+  }
+
+  tabs.forEach(tab => tab.addEventListener("click", () => showTab(tab.dataset.statisticsTab)));
+  showTab(localStorage.getItem("statisticsActiveTab") || "errors");
+
+  const table = document.getElementById("products-table");
+  table?.querySelectorAll("th[data-sort]").forEach(header => {
+    header.addEventListener("click", () => {
+      const columnIndex = Number(header.dataset.sort);
+      const tbody = table.tBodies[0];
+      const rows = [...tbody.rows];
+      const previousColumn = Number(table.dataset.sortColumn);
+      const ascending = previousColumn !== columnIndex || table.dataset.sortDirection !== "asc";
+
+      rows.sort((left, right) => {
+        const a = left.cells[columnIndex].textContent.trim().toLowerCase();
+        const b = right.cells[columnIndex].textContent.trim().toLowerCase();
+        const aNumber = Number(a.replace(/\s/g, ""));
+        const bNumber = Number(b.replace(/\s/g, ""));
+        const result = Number.isFinite(aNumber) && Number.isFinite(bNumber)
+          ? aNumber - bNumber
+          : a.localeCompare(b, "ru");
+        return ascending ? result : -result;
+      });
+
+      rows.forEach(row => tbody.appendChild(row));
+      table.dataset.sortColumn = String(columnIndex);
+      table.dataset.sortDirection = ascending ? "asc" : "desc";
+    });
+  });
+})();
+</script>
+{% endblock %}

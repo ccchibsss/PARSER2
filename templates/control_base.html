@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#f4f3ee">
+  <title>{% block title %}YMWB{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/control_center.css') }}">
+</head>
+<body class="control-page" data-control-page="{% block page_code %}{% endblock %}">
+  {% include "_app_header.html" %}
+  <main class="control-main">
+    {% block content %}{% endblock %}
+  </main>
+  <div class="control-toast" id="control-toast" role="status"></div>
+  <script src="{{ url_for('static', filename='js/control_center.js') }}"></script>
+</body>
+</html>

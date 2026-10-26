@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.py[cod]
+System
+*.db
+*.db-wal
+*.db-shm
+README*.md
+deploy

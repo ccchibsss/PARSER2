@@ -1,0 +1,31 @@
+# Запуск панели парсера в Docker:
+#   docker compose up -d --build
+#   → http://localhost:8501
+#
+# Каталог ./System монтируется внутрь: там System/.env с ключами,
+# базы SQLite и логи. Планировщик внутри контейнера запускает цикл
+# ежедневно в 07:00 (расписание — System/parse_schedule.json).
+
+services:
+  parser:
+    build: .
+    container_name: marketplace-parser
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      TZ: Europe/Moscow
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./System:/app/System
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

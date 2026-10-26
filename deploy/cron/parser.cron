@@ -1,0 +1,15 @@
+# Пример crontab для ежедневного парсинга в 07:00.
+#
+#   crontab -e        # вставьте строки ниже (пути поправьте под себя)
+#
+# CRON_TZ поддерживается в Debian/Ubuntu (vixie-cron) и большинстве сборок.
+# Если ваш cron его не понимает — переведите время в часовой пояс сервера.
+
+CRON_TZ=Europe/Moscow
+SHELL=/bin/bash
+
+# Полный цикл: склад → остатки → заказы → цены
+0 7 * * * cd /opt/parser && .venv/bin/python run_cycle_once.py >> System/logs/cron.log 2>&1
+
+# Необязательно: проверка, что база обновлялась за последние сутки
+30 7 * * * cd /opt/parser && .venv/bin/python run_cycle_once.py --check >> System/logs/cron.log 2>&1

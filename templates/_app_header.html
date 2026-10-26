@@ -1,0 +1,31 @@
+<header class="ymwb-header">
+  <div class="ymwb-header-inner">
+  <a class="ymwb-brand" href="{{ url_for('index') }}" aria-label="DNMagic — главная">
+    <span class="ymwb-brand-mark">D</span>
+    <span class="ymwb-brand-copy">
+      <strong>DNMagic</strong>
+    </span>
+  </a>
+
+  <nav class="ymwb-main-nav" aria-label="Основные разделы">
+    <a href="{{ url_for('index') }}"
+       class="{{ 'active' if active_page == 'products' else '' }}">Товары</a>
+    <a href="{{ url_for('control_processes_page') }}"
+       class="{{ 'active' if active_page == 'processes' else '' }}">Процессы</a>
+    <a href="{{ url_for('control_orders_page') }}"
+       class="{{ 'active' if active_page == 'orders' else '' }}">Заказы</a>
+    <a href="{{ url_for('control_logs_page') }}"
+       class="{{ 'active' if active_page == 'logs' else '' }}">Логи</a>
+    <a href="{{ url_for('show_statistic') }}"
+       class="{{ 'active' if active_page == 'statistics' else '' }}">Статистика</a>
+  </nav>
+
+  <div class="ymwb-header-status" id="ymwb-header-status" title="Текущий режим управления синхронизацией" aria-live="polite">
+    <i class="ymwb-status-dot status-{{ 'success' if automation_status and automation_status.enabled else 'disabled' }}" id="ymwb-header-status-dot" aria-hidden="true"></i>
+    <span class="ymwb-header-status-copy">
+      <small>Режим работы</small>
+      <strong id="ymwb-header-status-label">{{ 'Автоматический' if automation_status and automation_status.enabled else 'Ручной' }}</strong>
+    </span>
+  </div>
+  </div>
+</header>

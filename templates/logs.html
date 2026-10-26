@@ -1,0 +1,50 @@
+{% extends "control_base.html" %}
+{% block title %}Логи — YMWB{% endblock %}
+{% block page_code %}logs{% endblock %}
+{% block content %}
+<section class="control-hero">
+  <div>
+    <p class="control-eyebrow">Диагностика</p>
+    <h1>Журнал системы</h1>
+    <p>Технические события, ошибки и действия оператора.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="control-button secondary" id="download-log" href="{{ url_for('download_log') }}">Скачать лог</a>
+    <button class="control-button primary" id="refresh-logs">Обновить</button>
+  </div>
+</section>
+
+<div class="monitor-tabs" role="tablist">
+  <button class="active" data-monitor-target="system-log">Журнал системы</button>
+  <button data-monitor-target="operator-log">Действия оператора</button>
+</div>
+
+<section class="monitor-pane active" id="system-log">
+  <div class="log-toolbar">
+    <select id="log-level">
+      <option value="">Все уровни</option>
+      <option value="ERROR">ERROR</option>
+      <option value="WARNING">WARNING</option>
+      <option value="SUCCESS">SUCCESS</option>
+      <option value="INFO">INFO</option>
+      <option value="DEBUG">DEBUG</option>
+    </select>
+    <input type="search" id="log-search" placeholder="Поиск в журнале">
+    <select id="log-lines">
+      <option value="150">150 строк</option>
+      <option value="300">300 строк</option>
+      <option value="600">600 строк</option>
+    </select>
+  </div>
+  <div class="log-viewer" id="log-viewer">Получаем журнал…</div>
+</section>
+
+<section class="monitor-pane" id="operator-log">
+  <div class="control-table-wrap">
+    <table class="control-table">
+      <thead><tr><th>Время</th><th>Оператор</th><th>Действие</th><th>Описание</th></tr></thead>
+      <tbody id="operator-actions"></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

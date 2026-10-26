@@ -1,0 +1,34 @@
+# Панель управления парсером (Streamlit) как системная служба.
+#
+# Установка:
+#   sudo cp deploy/systemd/parser-streamlit.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now parser-streamlit
+#   systemctl status parser-streamlit
+#
+# Проверьте пути: /opt/parser должен быть каталогом с проектом,
+# /opt/parser/.venv — виртуальным окружением, пользователь parser — владельцем.
+
+[Unit]
+Description=Marketplace parser — Streamlit panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=parser
+Group=parser
+WorkingDirectory=/opt/parser
+Environment=HOME=/opt/parser
+Environment=PYTHONUNBUFFERED=1
+Environment=TZ=Europe/Moscow
+ExecStart=/opt/parser/.venv/bin/streamlit run streamlit_app.py
+Restart=always
+RestartSec=10
+# Streamlit не требует TTY, но при отсутствии /dev/tty может ругаться в логах
+StandardInput=null
+StandardOutput=append:/opt/parser/System/logs/streamlit.log
+StandardError=append:/opt/parser/System/logs/streamlit.err.log
+
+[Install]
+WantedBy=multi-user.target

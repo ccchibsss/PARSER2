@@ -1,0 +1,1 @@
+{"enabled":true,"interval_minutes":5,"running":false,"last_started":"2026-10-26T14:46:01+00:00","last_finished":"2026-10-26T14:46:13+00:00","last_result":"interrupted","last_message":"Предыдущий цикл был прерван перезапуском приложения","last_duration_seconds":2.0,"trigger":"catch-up"}

@@ -1,0 +1,20 @@
+# Один цикл парсинга для системного таймера (parser-cycle.timer).
+# Нужен, если парсинг должен идти даже при закрытой Streamlit-панели.
+
+[Unit]
+Description=Marketplace parser — single sync cycle
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=parser
+Group=parser
+WorkingDirectory=/opt/parser
+Environment=HOME=/opt/parser
+Environment=PYTHONUNBUFFERED=1
+Environment=TZ=Europe/Moscow
+ExecStart=/opt/parser/.venv/bin/python run_cycle_once.py
+# Ошибки не должны «залипать»: следующий запуск всё равно произойдёт по таймеру
+SuccessExitStatus=0 2
+TimeoutStartSec=45min

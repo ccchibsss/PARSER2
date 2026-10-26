@@ -1,0 +1,51 @@
+{% extends "control_base.html" %}
+{% block title %}Заказы — YMWB{% endblock %}
+{% block page_code %}orders{% endblock %}
+{% block content %}
+<section class="control-hero">
+  <div>
+    <p class="control-eyebrow">Маркетплейсы</p>
+    <h1>История заказов</h1>
+    <p>Локальный журнал обработки заказов и результатов каждого этапа.</p>
+  </div>
+  <button class="control-button secondary" id="refresh-orders">Обновить</button>
+</section>
+
+<form class="order-filters" id="order-filters">
+  <input type="search" id="order-query" placeholder="ID заказа, товар или поставщик">
+  <select id="order-marketplace">
+    <option value="">Все площадки</option>
+    <option value="Yandex">Yandex</option>
+    <option value="Wildberries">Wildberries</option>
+    <option value="Ozon">Ozon</option>
+  </select>
+  <select id="order-status">
+    <option value="">Все результаты</option>
+    <option value="processing">В обработке</option>
+    <option value="success">Успешно</option>
+    <option value="error">Ошибка</option>
+  </select>
+  <button class="control-button primary" type="submit">Найти</button>
+</form>
+
+<div class="orders-workspace">
+  <section class="control-card order-list-card">
+    <div class="section-heading compact">
+      <div>
+        <p class="control-eyebrow">Последние</p>
+        <h2>Заказы</h2>
+      </div>
+      <span class="muted" id="order-count"></span>
+    </div>
+    <div class="order-list" id="order-list">
+      <div class="empty-state">Получаем историю заказов…</div>
+    </div>
+  </section>
+  <section class="control-card order-detail" id="order-detail">
+    <div class="empty-state">
+      <strong>Выберите заказ</strong>
+      <p>Здесь появятся товары, поставщик и этапы обработки.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

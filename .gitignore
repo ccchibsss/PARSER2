@@ -1,0 +1,22 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Runtime state and credentials
+System/.env
+System/*.json
+System/*.db
+System/*.db-*
+System/backups/
+System/logs/
+System/order_ids.txt
+System/order_counter.txt
+System/last_update.txt
+cron.log
+
+# Локальные артефакты демо-режима и блокировки цикла
+System/.demo_mode
+System/*.lock

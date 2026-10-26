@@ -1,0 +1,4446 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Просмотр таблиц</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/control_center.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      (function () {
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = function (resource, options) {
+          const next = Object.assign({}, options || {});
+          const method = String(next.method || 'GET').toUpperCase();
+          if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+            const headers = new Headers(next.headers || {});
+            headers.set('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').content);
+            next.headers = headers;
+          }
+          return nativeFetch(resource, next);
+        };
+      })();
+    </script>
+    <style>
+        body {
+            font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
+            margin: 0 auto;
+            padding: 0;
+            width: 100%;
+            min-width: 1500px;
+            height: 100vh;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .nav {
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+
+        .nav a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            white-space: nowrap; /* 👈 ЭТО НЕ ДАСТ СЛОВАМ ПЕРЕНОСИТЬСЯ */
+        }
+
+        .nav a:hover {
+            transform: scale(1.05);
+        }
+
+        .nav a.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        h3 {
+            margin-top: 30px;
+        }
+        th a {
+            color: black;
+            text-decoration: none;
+        }
+
+        th a:visited {
+            color: black;
+        }
+
+        th a:hover {
+            color: black;
+            text-decoration: none;
+        }
+        .text-muted {
+            color: #888;
+        }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            table-layout: auto;
+        }
+
+
+        td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 4px 6px;
+        }
+
+        td input {
+            width: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            padding: 0 4px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        td, th {
+            height: 24px;                 /* было 25px */
+            max-height: 27px;             /* было 30px */
+            padding: 3px 5px;             /* было 4px 6px */
+            border: 1px solid #ccc;
+            vertical-align: middle;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 90%;
+        }
+        td input {
+            height: 100%;
+            width: 100%;
+            padding: 2px 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            line-height: 1;
+        }
+
+        td.text-left {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        td.text-left input {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+            padding: 2px 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        td.text-center input,
+        td.text-center select {
+            text-align: center;
+        }
+        td select {
+            height: 100%;
+            width: 100%;
+            padding: 2px 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg fill='gray' height='14' viewBox='0 0 24 24' width='14' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 6px center;
+            background-size: 16px;
+            padding-right: 24px;
+            line-height: 1;
+        }
+        .header-yandex th {
+            background-color: #fdf7b2;
+        }
+
+        .header-ozon th {
+            background-color: #d5e4ff;
+            color: black;
+        }
+
+        .header-wildberries th {
+            background-color: #efc1ed;
+            color: black;
+        }
+
+        .header-yandex .header-cell {
+            background-color: #fdf7b2;
+            color: black;
+        }
+
+        .header-ozon .header-cell {
+            background-color: #d5e4ff;
+            color: black;
+        }
+
+        .header-wildberries .header-cell {
+            background-color: #efc1ed;
+            color: black;
+        }
+
+        .nav a.active.yandex {
+            background-color: #fdf7b2;
+            color: black;
+        }
+
+        .nav a.active.ozon {
+            background-color: #d5e4ff;
+            color: black;
+        }
+
+        .nav a.active.wildberries {
+            background-color: #efc1ed;
+            color: black;
+        }
+        .add-button-yandex {
+            background-color: #fdf7b2;
+            color: black;
+        }
+
+        .add-button-ozon {
+            background-color: #d5e4ff;
+            color: black;
+        }
+
+        .add-button-wildberries {
+            background-color: #efc1ed;
+            color: black;
+        }
+        .stats-yandex {
+            background-color: #fff8dc;
+        }
+
+        .stats-ozon {
+            background-color: #e0ffff;
+        }
+
+        .stats-wildberries {
+            background-color: #f3e6ff;
+        }
+        #manual-update-btn {
+            transition: all 0.2s ease;
+            transform-origin: left center;
+        }
+
+        #manual-update-btn:hover {
+            transform: scale(1.1);
+            color: #0056b3;
+            text-decoration: none; /* убираем подчёркивание */
+        }
+        .toggle-switch {
+          position: relative;
+          display: inline-block;
+          width: 26px;
+          height: 14px;
+        }
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .toggle-slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0; left: 0;
+          right: 0; bottom: 0;
+          background-color: #ccc;
+          transition: .3s;
+          border-radius: 14px;
+        }
+        .toggle-slider:before {
+          position: absolute;
+          content: "";
+          height: 10px;
+          width: 10px;
+          left: 2px;
+          bottom: 2px;
+          background-color: white;
+          transition: .3s;
+          border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+          background-color: #3395ff;
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+          transform: translateX(12px);
+        }
+        tr.highlighted {
+            background-color: var(--highlight-color) !important;
+        }
+        td[title] {
+    position: relative;
+    cursor: default;
+        }
+
+        td[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: 100%;
+            left: 0;
+            white-space: normal;
+            background: #333;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 999;
+            max-width: 500px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        td.comment-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        td.comment-cell input {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+            padding: 2px 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-container {
+            overflow-x: auto !important;
+            width: 100%;
+        }
+        table {
+            display: table;
+            margin: 0 auto;
+        }
+
+        /* Контейнер таблицы с CSS Grid */
+        .table-container {
+            position: relative;
+        }
+        
+        .sticky-header, .sticky-input {
+            display: grid;
+            /* Порядок колонок:
+               1) №
+               2) Sklad
+               3) Invask
+               4) Okno
+               5) United
+               6) Модель
+               7) Статус
+               8) Нал
+               9) Опт
+               10) %
+               11) Цена
+               12) Комментарий
+               13) Дата изменения
+               14) Действия
+            */
+            grid-template-columns:
+                30px    /* № */
+                80px    /* Sklad */
+                75px    /* Invask */
+                75px    /* Okno */
+                85px    /* United */
+                250px   /* Модель */
+                70px    /* Статус */
+                60px    /* Нал */
+                90px    /* Опт */
+                70px    /* % */
+                180px   /* Комментарий */
+                80px    /* Дата изменения */
+                ;       /* Важно: колонка "Действия" рисуется отдельной .header-cell, см. ниже */
+            position: sticky;
+            z-index: 100;
+            background: white;
+            border: 1px solid #ccc;
+        }
+
+        /* 🟣 Специальные grid-template-columns для Wildberries */
+        /* 🟣 Специальные grid-template-columns для Wildberries (Новый порядок и кол-во) */
+        /* Включает все колонки ДФ: № + 14 данных (без «Действия») */
+        .header-wildberries.sticky-header,
+        .header-wildberries.sticky-input {
+            grid-template-columns:
+                23px   /* № */
+                70px   /* Sklad */
+                105px  /* Invask */
+                80px   /* Okno */
+                75px   /* United */
+                105px  /* WB Barcode */
+                80px   /* WB Артикул */
+                253px  /* Модель */
+                50px   /* Статус */
+                30px   /* Нал */
+                68px   /* Опт */
+                58px   /* % */
+                68px   /* Цена */
+                126px  /* Комментарий */
+                111px  /* Дата изменения */;
+        }
+        
+        .sticky-header {
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        
+        .sticky-header .header-cell:first-child {
+            border-top-left-radius: 5px;
+        }
+        
+        .sticky-header .header-cell:last-child {
+            border-top-right-radius: 5px;
+        }
+        
+        .sticky-header {
+            top: 0;
+        }
+        
+        .sticky-input {
+            top: 31px;
+            z-index: 99;
+        }
+        
+        .header-cell, .input-cell {
+            padding: 4px 6px;
+            border-right: 1px solid #ccc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 25px;
+        }
+        
+        .header-cell:last-child, .input-cell:last-child {
+            border-right: none;
+        }
+        
+        .header-cell a {
+            color: black;
+            text-decoration: none;
+            width: 100%;
+        }
+        
+        .input-cell input, .input-cell select {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 4px;
+            box-sizing: border-box;
+        }
+        
+        /* Оптимизированные ширины для основной таблицы */
+        .main-table {
+            table-layout: fixed;
+        }
+        /* УМЕНЬШЕННЫЕ НА 10% ШИРИНЫ (Yandex и Ozon) */
+        .main-table td:nth-child(1)  { width: 23px !important; }   /* № */
+        .main-table td:nth-child(2)  { width: 35px !important; }   /* Sklad */
+        .main-table td:nth-child(3)  { width: 35px !important; }   /* Invask */
+        .main-table td:nth-child(4)  { width: 35px !important; }   /* Okno */
+        .main-table td:nth-child(5)  { width: 35px !important; }   /* United */
+        .main-table td:nth-child(6)  { width: 250px !important; }  /* Модель */
+        .main-table td:nth-child(7)  { width: 30px !important; }   /* Статус */
+        .main-table td:nth-child(8)  { width: 20px !important; }   /* Нал */
+        .main-table td:nth-child(9)  { width: 45px !important; }   /* Опт */
+        .main-table td:nth-child(10) { width: 28px !important; }   /* % */
+        .main-table td:nth-child(11) { width: 50px !important; }   /* Цена */
+        .main-table td:nth-child(12) { width: 162px !important; }  /* Комментарий */
+        .main-table td:nth-child(13) { width: 75px !important; }   /* Дата изменения */
+        .main-table td:nth-child(14) { width: 48px !important; }   /* Действия */
+
+        /* 🟣 Специальные ширины для таблицы Wildberries (новый порядок) */
+        /* 1..16: №, Sklad, Invask, Okno, United, WB Barcode, WB Артикул,
+                  Модель, Статус, Нал, Опт, %, Цена, Комментарий, Дата изменения, Действия */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(1)  { width: 30px !important; }   /* № */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(2)  { width: 40px !important; }   /* Sklad */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(3)  { width: 40px !important; }  /* Invask */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(4)  { width: 40px !important; }   /* Okno */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(5)  { width: 40px !important; }   /* United */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(6)  { width: 90px !important; }  /* WB Barcode */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(7)  { width: 65px !important; }   /* WB Артикул */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(8)  { width: 253px !important; }  /* Модель */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(9)  { width: 40px !important; }   /* Статус */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(10) { width: 30px !important; }   /* Нал */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(11) { width: 60px !important; }   /* Опт */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(12) { width: 30px !important; }   /* % */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(13) { width: 60px !important; }   /* Цена */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(14) { width: 126px !important; }  /* Комментарий */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(15) { width: 100px !important; }  /* Дата изменения */
+        .header-wildberries ~ .table-wrapper .main-table td:nth-child(16) { width: 55px !important; }   /* Действия */
+        
+
+
+        .letter-filter a {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .letter-filter a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .letter-filter a.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        /* Единый столбец: алфавит сверху, поиск ниже, одна ширина */
+          .letters-and-search {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .letters-and-search .letters {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+          }
+          .letters-and-search .letters .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+          }
+          .letters-and-search .search-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+          }
+          .letters-and-search .search-row .search-wrap {
+            position: relative;
+            flex: 1 1 auto;   /* инпут растягивается по ширине алфавита */
+          }
+          .letters-and-search input[type="search"] {
+            width: 100%;
+            height: 32px;
+            font-size: 15px;
+            padding: 6px 32px 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+          }
+          .letters-and-search .search-row button[type="submit"]{
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background:#f0f0f0;
+            display:flex; align-items:center; gap:6px;
+            font-size:15px; cursor:pointer;
+          }
+          /* Нижняя полоса: log слева, +/- справа, по одной линии */
+          .letters-and-search .controls-under {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+          }
+          .letters-and-search .controls-under .left,
+          .letters-and-search .controls-under .right {
+            display: flex; align-items: center; gap: 10px;
+          }
+          .btn-markup {
+            height: 28px;
+            padding: 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background:#f8f8f8;
+            cursor: pointer;
+          }
+        html, body {
+            width: 100%;
+            height: 100vh;
+        }
+        /* ДОБАВЬ в конец того же <style>, где уже лежит мобильный медиазапрос */
+        /* --- Мобильный фикс (≤ 767 px) ----------------------------------- */
+        /* Закомментированный медиазапрос для мобильных устройств */
+        /*
+        @media (max-width: 767px){
+            html, body{
+                 height: auto;
+                 min-height: 100vh;
+             }
+
+          .table-container{
+              justify-content: flex-start;
+              overflow-x: auto;
+              margin-left: -20px;
+              margin-right: -20px;
+              padding-left: 20px;
+              padding-right: 20px;
+          }
+
+          .table-container > table{
+              margin: 0;
+          }
+        }
+        */
+        thead {
+            position: relative;
+        }
+        .table-wrapper {
+          max-height: 80vh; /* или нужная тебе высота */
+          overflow-y: scroll; /* всегда показываем скроллбар */
+          overflow-x: hidden; /* отключаем горизонтальный скролл */
+          scrollbar-gutter: stable; /* всегда резервируем место под скроллбар */
+        }
+
+        table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        thead th {
+          position: sticky;
+          top: 0;
+          background: var(--ui-surface);
+          z-index: 2;
+        }
+        thead tr:nth-child(1) th {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+
+        thead tr:nth-child(2) td {
+            position: sticky;
+            top: 35px; /* или подстрой под свою высоту заголовка */
+            background: white;
+            z-index: 2;
+        }
+        thead tr:nth-child(2) td {
+            position: sticky;
+            top: 35px;
+            background: white;
+            z-index: 2;
+            height: 38px;
+        }
+        .sticky-input input,
+        .sticky-input select,
+        .sticky-input button {
+            border-radius: 8px;
+            padding: 3px 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            height: 30px;
+            font-size: 14px;
+        }
+        .main-table td,
+        .main-table th,
+        .main-table input,
+        .main-table select {
+            font-size: 90% !important;
+        }
+        .error-indicator {
+            color: red;
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 2px;
+            line-height: 1;
+          }
+        /* ——— Единые размеры и выравнивание под высоту алфавита ——— */
+        :root{
+          --ctl-h: 28px;          /* высота, как у букв */
+          --ctl-radius: 6px;      /* скругление */
+          --ctl-font: 14px;       /* шрифт */
+          --ctl-pad-x: 10px;      /* горизонтальные отступы */
+        }
+
+        /* Алфавитные кнопки */
+        .letter-filter a{
+          height: var(--ctl-h);
+          padding: 0 var(--ctl-pad-x);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: var(--ctl-radius);
+          font-size: var(--ctl-font);
+        }
+
+        /* Поле поиска */
+        #custom-search{
+          height: var(--ctl-h);
+          padding: 0 28px 0 var(--ctl-pad-x); /* место под крестик справа */
+          font-size: var(--ctl-font);
+          border-radius: var(--ctl-radius);
+        }
+
+        /* Кнопка "Найти" */
+        form[action^="/table/"] button[type="submit"]{
+          height: var(--ctl-h) !important;
+          padding: 0 var(--ctl-pad-x) !important;
+          border-radius: var(--ctl-radius) !important;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: var(--ctl-font);
+        }
+
+        /* Кнопки наценки */
+        #btn-markdown-dec,
+        #btn-markdown-inc{
+          height: var(--ctl-h);
+          padding: 0 8px;
+          border-radius: var(--ctl-radius);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: var(--ctl-font);
+        }
+        /* === Единая высота и стиль для всех элементов управления === */
+        :root {
+          --ctl-h: 32px;       /* единая высота */
+          --ctl-radius: 6px;   /* скругление */
+          --ctl-font: 14px;    /* размер шрифта */
+          --ctl-pad-x: 10px;   /* горизонтальные отступы */
+        }
+
+        /* Алфавитные кнопки */
+        .letter-filter a {
+          height: var(--ctl-h) !important;
+          padding: 0 var(--ctl-pad-x) !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: var(--ctl-radius);
+          font-size: var(--ctl-font);
+        }
+
+        /* Поле поиска */
+        #custom-search {
+          height: var(--ctl-h) !important;
+          padding: 0 28px 0 var(--ctl-pad-x) !important;
+          font-size: var(--ctl-font);
+          border-radius: var(--ctl-radius);
+          box-sizing: border-box;
+        }
+
+        /* Кнопка "Найти" */
+        form[action^="/table/"] button[type="submit"] {
+          height: var(--ctl-h) !important;
+          padding: 0 var(--ctl-pad-x) !important;
+          border-radius: var(--ctl-radius) !important;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: var(--ctl-font);
+        }
+
+        /* Кнопки ±1% */
+        #btn-markdown-dec,
+        #btn-markdown-inc {
+          height: var(--ctl-h) !important;
+          padding: 0 var(--ctl-pad-x) !important;
+          border-radius: var(--ctl-radius);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: var(--ctl-font);
+        }
+
+        /* Все кнопки и поля в одной линии */
+        form, .letter-filter, #btn-markdown-dec, #btn-markdown-inc {
+          vertical-align: middle;
+        }
+        :root{
+          --stack-gap: 8px; /* единый вертикальный зазор между рядами */
+        }
+
+        /* Стили для нового компактного блока поиска */
+        .letter-filter a.active {
+            background-color: #007bff !important;
+            color: white !important;
+            border-color: #007bff !important;
+        }
+        
+        .letter-filter a:hover {
+            background-color: #f0f0f0 !important;
+        }
+        /* === Компактный режим (уменьшенные шрифты, высота, отступы) === */
+        body.compact .main-table td,
+        body.compact .main-table th,
+        body.compact .main-table input,
+        body.compact .main-table select {
+          font-size: 14px !important;   /* было ~14px/90% */
+          line-height: 1.1;
+        }
+
+        body.compact td,
+        body.compact th {
+          height: 5px;        /* ↓ вместо 22px */
+          max-height: 5px;    /* ↓ вместо 24px */
+          padding: 1px 3px;    /* ↓ вместо 2px 4px */
+        }
+
+        body.compact .header-cell,
+        body.compact .input-cell {
+          min-height: 22px;              /* было ~25px */
+          padding: 2px 4px;              /* было 4px 6px */
+        }
+
+        body.compact .sticky-input input,
+        body.compact .sticky-input select,
+        body.compact .sticky-input button {
+          height: 24px;                  /* было ~30px */
+          font-size: 13px;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        /* Чуть плотнее «двухэтажная» шапка (хедер + фильтры) */
+        body.compact .sticky-input { top: 29px; }  /* было 31px */
+        /* Мягкая подсветка активного поставщика */
+        .supplier-active {
+          background: #eaf6ff !important;   /* нежно-голубой */
+        }
+        .supplier-active input {
+          background: #eaf6ff !important;
+        }
+         /* Полное принудительное сжатие строк данных */
+        .main-table tbody tr,
+        .main-table tbody td {
+          height: 0 !important;          /* убираем встроенные размеры */
+          min-height: 0 !important;
+          max-height: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          line-height: 1 !important;     /* текст плотный */
+          border-collapse: collapse;
+          vertical-align: middle !important;
+          font-size: 10px !important;
+        }
+
+        /* Инпуты и селекты тоже жмём */
+        .main-table tbody td input,
+        .main-table tbody td select {
+          font-size: 10px !important;
+          height: 100% !important;
+          line-height: 1 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box;
+        }
+        /* 🔥 Максимальное сжатие строк (кроме шапки и строки ввода) */
+        .main-table tbody tr td {
+          font-size: 12px !important;
+          line-height: 1 !important;
+          height: 25px !important;           /* ячейки остаются низкими */
+          padding: 0 2px !important;
+          margin: 0 !important;
+          border-collapse: collapse !important;
+          vertical-align: middle !important;
+          white-space: nowrap;
+        }
+
+        /* Инпуты и селекты внутри ячеек при редактировании */
+        .main-table tbody td input,
+        .main-table tbody td select {
+          font-size: 13px !important;
+          height: 24px !important;           /* поле выше самой ячейки */
+          line-height: 1.2 !important;
+          padding: 2px 6px !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+        }
+        /* 🔽 Заголовки таблицы чуть меньше шрифтом */
+        .main-table th,
+        .sticky-header .header-cell {
+            font-size: 15px !important;   /* было 90% */
+            font-weight: 400;
+        }
+        /* Центрируем только иконки в столбце Действия */
+        .action-cell button img {
+            display: inline-block;
+            vertical-align: middle; /* выравнивание по центру строки */
+            margin-top: -2px;       /* если иконка все равно выше — подкорректировать вручную */
+        }
+        /* 🔹 Мягкая подсветка обязательных полей */
+        input[required],
+        select[required] {
+            border: 1px solid #ffb347 !important;  /* тонкая оранжевая рамка */
+            background-color: #fff8f0;             /* чуть теплый фон */
+        }
+
+        /* При фокусе — чуть ярче, чтобы пользователь видел */
+        input[required]:focus,
+        select[required]:focus {
+            border-color: #ff8000 !important;
+            background-color: #fff4e6;
+            outline: none;
+        }
+        /* 🔹 Подсветка обязательных полей по маркетплейсу */
+        {% if selected_table == 'yandex' %}
+          input[required],
+          select[required] {
+            border: 1px solid #FFD633 !important;
+            background-color: #FFFBEA;
+          }
+          input[required]:focus,
+          select[required]:focus {
+            border-color: #E6B800 !important;
+            background-color: #FFF5CC;
+          }
+        {% elif selected_table == 'ozon' %}
+          input[required],
+          select[required] {
+            border: 1px solid #005BFF !important;
+            background-color: #F0F6FF;
+          }
+          input[required]:focus,
+          select[required]:focus {
+            border-color: #0041B3 !important;
+            background-color: #E0EDFF;
+          }
+        {% elif selected_table == 'wildberries' %}
+          input[required],
+          select[required] {
+            border: 1px solid #9B30FF !important;
+            background-color: #FAF0FF;
+          }
+          input[required]:focus,
+          select[required]:focus {
+            border-color: #6A00CC !important;
+            background-color: #F0E0FF;
+          }
+        {% endif %}
+        .price-cell {
+          display: inline-flex;
+          justify-content: flex-end;
+          min-width: 70px; /* подстрой ширину под свои числа */
+        }
+        .price-value {
+          text-align: right;
+          min-width: 55px;
+          font-variant-numeric: tabular-nums;
+        }
+        .price-symbol {
+          margin-left: 2px;
+        }
+        .copy-tooltip {
+          position: fixed;
+          background: #333;
+          color: #fff;
+          font-size: 12px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          z-index: 9999;
+        }
+        /* === FULLSCREEN OVERLAY для переключений === */
+        #screen-overlay[hidden] { display: none !important; }
+
+        #screen-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: rgba(0,0,0,0.45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(1px);
+        }
+
+        .overlay-box {
+          min-width: 360px;
+          max-width: 90vw;
+          background: var(--ui-surface);
+          border-radius: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          padding: 18px 20px;
+          text-align: center;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .overlay-title {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 8px 0;
+          color: #333;
+        }
+
+        .overlay-note {
+          font-size: 13px;
+          color: #666;
+          margin-bottom: 14px;
+        }
+
+        /* Прогресс-бар (индетерминированный) */
+        .progress {
+          position: relative;
+          width: 100%;
+          height: 8px;
+          background: #eee;
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .progress-bar {
+          position: absolute;
+          left: -40%;
+          top: 0;
+          height: 100%;
+          width: 40%;
+          background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+          border-radius: 6px;
+          animation: indeterminate 1.2s infinite;
+        }
+        @keyframes indeterminate {
+          0%   { left: -40%; width: 40%; }
+          50%  { left: 20%;  width: 60%; }
+          100% { left: 100%; width: 40%; }
+        }
+
+        /* === Обновлённая компактная шапка === */
+        :root {
+          --ui-border: #dcded8;
+          --ui-border-soft: #e9e7e1;
+          --ui-text: #20242a;
+          --ui-muted: #68717d;
+          --ui-surface: #fffefa;
+          --ui-surface-soft: #f7f6f1;
+          --ui-blue: #2f86eb;
+          --ui-shadow: 0 1px 2px rgba(20, 28, 38, .05);
+        }
+
+        body {
+          color: var(--ui-text);
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, .72), transparent 260px),
+            var(--control-bg);
+        }
+
+        .wrapper.app-shell {
+          max-width: 1800px;
+          min-width: 1500px;
+          padding: 14px 20px 0;
+          box-sizing: border-box;
+        }
+
+        .app-toolbar {
+          display: grid !important;
+          grid-template-columns: max-content 168px;
+          align-items: start !important;
+          justify-content: start;
+          gap: 16px !important;
+          width: fit-content !important;
+          margin: 0 0 10px !important;
+          padding: 0 2px;
+          box-sizing: border-box;
+        }
+
+        .toolbar-main,
+        .toolbar-stack {
+          min-width: 0;
+          width: fit-content;
+        }
+
+        .toolbar-primary {
+          display: grid !important;
+          grid-template-columns: 450px 190px max-content 154px;
+          align-items: start !important;
+          justify-content: start;
+          gap: 18px !important;
+          width: fit-content;
+          min-height: 68px;
+          box-sizing: border-box;
+        }
+
+        .market-controls {
+          display: contents !important;
+        }
+
+        .update-card,
+        .summary-metrics,
+        .market-switches {
+          transform: none !important;
+          margin: 0 !important;
+          min-width: 0 !important;
+          color: var(--ui-muted) !important;
+          font-size: 14px !important;
+          line-height: 1.25;
+        }
+
+        .update-card {
+          gap: 4px !important;
+        }
+
+        .update-label {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          color: var(--ui-muted);
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: .02em;
+        }
+
+        .update-time {
+          color: var(--ui-text);
+          font-weight: 600;
+        }
+
+        #manual-update-btn {
+          color: #475569 !important;
+        }
+
+        #manual-update-btn:hover {
+          transform: none;
+          color: #263445 !important;
+          border-color: #aeb9c5;
+          background: #f1f4f7;
+        }
+
+        .automation-inline,
+        .update-actions {
+          display: flex;
+          align-items: center;
+        }
+
+        .automation-inline {
+          gap: 5px;
+          color: #555f6b;
+          letter-spacing: 0;
+          white-space: nowrap;
+        }
+
+        .automation-inline .toggle-switch {
+          transform: scale(.86);
+          transform-origin: center;
+        }
+
+        .automation-interval-control {
+          display: inline-flex;
+          align-items: center;
+          height: 24px;
+          padding: 0 5px 0 3px;
+          border: 1px solid #d8e0e8;
+          border-radius: 6px;
+          background: var(--ui-surface);
+          color: #697586;
+          font-size: 11px;
+          font-weight: 500;
+          box-sizing: border-box;
+          transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        .automation-interval-control:focus-within {
+          border-color: #86b7ed;
+          box-shadow: 0 0 0 2px rgba(47, 142, 232, .12);
+        }
+
+        .automation-interval-control.is-saving {
+          border-color: #7bb4eb;
+          background: #f7fbff;
+        }
+
+        .automation-interval-control input {
+          width: 42px;
+          min-width: 42px;
+          height: 20px;
+          padding: 0 2px;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #253448;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          box-sizing: border-box;
+        }
+
+        .update-actions {
+          gap: 6px;
+          min-height: 24px;
+          white-space: nowrap;
+        }
+
+        .sync-action-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 24px;
+          padding: 0 9px;
+          border: 1px solid #d7dde4;
+          border-radius: 6px;
+          cursor: pointer;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 1;
+          white-space: nowrap;
+          transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+        }
+
+        #manual-update-btn {
+          background: #f8fafc;
+        }
+
+        #automation-run-btn {
+          border-color: #b9d8fb;
+          background: #eaf4ff;
+          color: #1769b0;
+        }
+
+        #automation-run-btn:hover {
+          border-color: #8fc2f5;
+          background: #dceeff;
+          color: #0f5a9c;
+        }
+
+        .sync-action-btn:disabled {
+          cursor: wait;
+          opacity: .55;
+        }
+
+        .automation-status-badge {
+          max-width: 76px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          padding: 2px 6px;
+          border-radius: 999px;
+          background: #eef1f4;
+          color: #5c6670;
+          font-size: 11px;
+          font-weight: 600;
+          line-height: 16px;
+          cursor: help;
+        }
+
+        .automation-status-badge.status-success {
+          background: #e7f6ed;
+          color: #287a49;
+        }
+
+        .automation-status-badge.status-running {
+          background: #e8f2ff;
+          color: #246db5;
+        }
+
+        .automation-status-badge.status-disabled {
+          background: #fff1df;
+          color: #a85a16;
+        }
+
+        .automation-status-badge.status-partial,
+        .automation-status-badge.status-error,
+        .automation-status-badge.status-interrupted {
+          background: #fff0e5;
+          color: #a8581d;
+        }
+
+        .summary-metrics {
+          gap: 4px !important;
+        }
+
+        .metric-row {
+          justify-content: space-between;
+          gap: 14px !important;
+        }
+
+        .metric-row span:last-child {
+          color: var(--ui-text);
+          font-weight: 600;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .toolbar-primary .nav {
+          display: flex;
+          justify-content: flex-start;
+          gap: 8px;
+          margin: 0 !important;
+          transform: none !important;
+        }
+
+        .toolbar-primary .nav a {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 82px;
+          height: 42px;
+          margin: 0;
+          padding: 0 16px;
+          border: 1px solid transparent;
+          border-radius: 10px;
+          box-shadow: none;
+          font-size: 15px;
+          transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+        }
+
+        .toolbar-primary .nav a:hover {
+          transform: none;
+          border-color: #cfd5dc;
+          box-shadow: var(--ui-shadow);
+        }
+
+        .market-switches {
+          gap: 5px !important;
+        }
+
+        .market-switches > label,
+        .supplier-row {
+          min-height: 19px;
+          color: #4f5864;
+        }
+
+        .market-switches > label > span {
+          min-width: 92px !important;
+        }
+
+        .toolbar-secondary {
+          display: grid !important;
+          grid-template-columns: 565px 330px;
+          align-items: start !important;
+          justify-content: start !important;
+          gap: 16px !important;
+          width: fit-content !important;
+          max-width: 100%;
+          margin: 6px 0 0 !important;
+        }
+
+        .quick-actions {
+          gap: 8px !important;
+          margin: 0 !important;
+        }
+
+        .quick-action,
+        .log-action,
+        .search-submit,
+        #btn-markdown-dec,
+        #btn-markdown-inc {
+          color: #343b44 !important;
+          background: var(--ui-surface) !important;
+          border: 1px solid var(--ui-border) !important;
+          box-shadow: var(--ui-shadow);
+          transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
+        }
+
+        .quick-action {
+          height: 32px;
+          box-sizing: border-box;
+          padding: 0 11px !important;
+          border-radius: 8px !important;
+          font-size: 14px !important;
+        }
+
+        .quick-action:hover,
+        .log-action:hover,
+        .search-submit:hover,
+        #btn-markdown-dec:hover,
+        #btn-markdown-inc:hover {
+          background: #f3f6f9 !important;
+          border-color: #c6cdd5 !important;
+          box-shadow: 0 2px 5px rgba(20, 28, 38, .08);
+        }
+
+        .letter-filter {
+          align-items: center;
+        }
+
+        .letter-filter > div {
+          gap: 5px !important;
+        }
+
+        .letter-filter a {
+          box-sizing: border-box;
+          min-width: 34px;
+          padding: 0 6px !important;
+          color: #3f4751 !important;
+          background: var(--ui-surface);
+          border: 1px solid var(--ui-border) !important;
+          box-shadow: var(--ui-shadow);
+          text-decoration: none;
+          transition: background-color .14s ease, border-color .14s ease, color .14s ease;
+        }
+
+        .letter-filter a:hover {
+          color: #176ecb !important;
+          background: #f4f8fd !important;
+          border-color: #b9d3ef !important;
+        }
+
+        .letter-filter a.active {
+          background: #e8f2fd !important;
+          color: #176ecb !important;
+          border-color: #8dbbe9 !important;
+          box-shadow: none;
+        }
+
+        .search-tools {
+          gap: var(--stack-gap) !important;
+          margin: 0 !important;
+        }
+
+        #custom-search {
+          width: 100% !important;
+          min-width: 230px;
+          color: var(--ui-text);
+          background: var(--ui-surface);
+          border: 1px solid var(--ui-border) !important;
+          box-shadow: inset 0 1px 2px rgba(20, 28, 38, .03);
+          outline: none;
+        }
+
+        #custom-search:focus {
+          border-color: #7fb1e6 !important;
+          box-shadow: 0 0 0 3px rgba(47, 134, 235, .11);
+        }
+
+        .search-submit {
+          white-space: nowrap;
+        }
+
+        .search-subtools {
+          justify-content: space-between;
+          color: var(--ui-muted) !important;
+        }
+
+        .markup-tools {
+          margin-left: 0 !important;
+        }
+
+        .supplier-panel {
+          display: flex !important;
+          flex-direction: column;
+          gap: 7px !important;
+          min-width: 168px !important;
+          width: 168px;
+          margin: 0 !important;
+          padding: 2px 0 0 14px;
+          transform: none !important;
+          border-left: 1px solid var(--ui-border-soft);
+          font-size: 14px !important;
+          box-sizing: border-box;
+        }
+
+        .supplier-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          height: 28px;
+        }
+
+        .supplier-name {
+          color: #3f4751;
+          font-weight: 500;
+          white-space: nowrap;
+        }
+
+        .toggle-switch {
+          flex: 0 0 auto;
+        }
+
+        /* === Более современная таблица без потери плотности === */
+        .table-container {
+          border: 1px solid var(--ui-border);
+          border-radius: 10px 10px 0 0;
+          background: var(--ui-surface);
+          box-shadow: 0 2px 8px rgba(20, 28, 38, .05);
+        }
+
+        .sticky-header {
+          border-bottom: 1px solid rgba(90, 100, 112, .18);
+        }
+
+        .sticky-header .header-cell {
+          color: #303740;
+          font-weight: 400 !important;
+          border-color: rgba(100, 108, 118, .18) !important;
+        }
+
+        body.compact .sticky-header .header-cell {
+          min-height: 29px;
+          padding: 3px 6px;
+          line-height: 1.2;
+        }
+
+        .sticky-input {
+          background: var(--ui-surface-soft);
+          border-bottom: 1px solid var(--ui-border);
+        }
+
+        .sticky-input .input-cell {
+          border-color: var(--ui-border-soft) !important;
+        }
+
+        .sticky-input input,
+        .sticky-input select {
+          background-color: var(--ui-surface);
+          border-color: #d9dfe6;
+          outline: none;
+        }
+
+        .sticky-input input:focus,
+        .sticky-input select:focus {
+          border-color: #7fb1e6 !important;
+          box-shadow: 0 0 0 2px rgba(47, 134, 235, .10);
+        }
+
+        .main-table tbody tr td {
+          color: #303740;
+          background: var(--ui-surface);
+          border-color: var(--ui-border-soft) !important;
+          border-top: 0 !important;
+        }
+
+        .main-table tbody tr:nth-child(even) td {
+          background: #f8f7f2;
+        }
+
+        .main-table tbody tr:hover td {
+          background: #eef5f2 !important;
+        }
+
+        .main-table tbody tr:hover td.supplier-active,
+        .main-table tbody tr td.supplier-active {
+          position: relative;
+          background: linear-gradient(90deg, #d9edff 0%, #eaf5ff 100%) !important;
+          color: #155f9f;
+          font-weight: 600;
+          box-shadow:
+            inset 3px 0 0 #2f86eb,
+            inset 0 0 0 1px #8fc2ee;
+        }
+
+        .main-table tbody tr:hover td.supplier-active {
+          background: linear-gradient(90deg, #cee7ff 0%, #e2f1ff 100%) !important;
+          box-shadow:
+            inset 3px 0 0 #2478d8,
+            inset 0 0 0 1px #70afe7;
+        }
+
+        .main-table tbody tr td.supplier-active input {
+          background: transparent !important;
+          color: #155f9f;
+          font-weight: 600;
+        }
+
+        /* Выделение рабочей строки должно перекрывать полосатый фон,
+           hover и отдельную подсветку ячеек поставщиков. */
+        .main-table tbody tr.highlighted td,
+        .main-table tbody tr.highlighted:hover td,
+        .main-table tbody tr.highlighted td.supplier-active,
+        .main-table tbody tr.highlighted:hover td.supplier-active {
+          background: var(--highlight-color, #fdf7b2) !important;
+        }
+
+        .main-table tbody tr.highlighted td.supplier-active,
+        .main-table tbody tr.highlighted:hover td.supplier-active {
+          color: inherit;
+          font-weight: inherit;
+          box-shadow: none;
+        }
+
+        .main-table tbody tr.highlighted td.supplier-active input {
+          color: inherit;
+          font-weight: inherit;
+        }
+
+        .action-cell button {
+          width: 24px;
+          height: 22px;
+          padding: 2px !important;
+          border-radius: 6px !important;
+          transition: background-color .14s ease;
+        }
+
+        .action-cell button:hover {
+          background: #e7edf4 !important;
+        }
+
+        .action-cell button img {
+          margin-top: 0;
+          opacity: .78;
+        }
+
+        @media (max-width: 1450px) {
+          .wrapper.app-shell {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .toolbar-primary {
+            grid-template-columns: 450px 190px max-content 154px;
+            gap: 18px !important;
+          }
+
+          .toolbar-secondary {
+            grid-template-columns: 555px 300px;
+            gap: 10px !important;
+          }
+
+          .letter-filter > div {
+            gap: 4px !important;
+          }
+        }
+
+        /* === Утверждённая компоновка шапки === */
+        body {
+          min-width: 1300px;
+        }
+
+        .wrapper.app-shell {
+          min-width: 1300px;
+          max-width: 1600px;
+          padding: 14px 20px 0;
+        }
+
+        .app-toolbar {
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) 310px;
+          grid-template-rows: auto auto;
+          align-items: stretch !important;
+          gap: 0 !important;
+          width: 100% !important;
+          margin: 0 0 10px !important;
+          padding: 0 !important;
+          overflow: hidden;
+          border: 1px solid var(--ui-border);
+          border-radius: 12px;
+          background: var(--ui-surface);
+          box-shadow: var(--ui-shadow);
+          box-sizing: border-box;
+        }
+
+        .toolbar-main,
+        .toolbar-stack {
+          display: contents !important;
+        }
+
+        .toolbar-primary {
+          grid-column: 1;
+          grid-row: 1;
+          display: grid !important;
+          grid-template-columns: 205px 205px minmax(715px, 1fr);
+          align-items: stretch !important;
+          gap: 18px !important;
+          width: 100%;
+          min-height: 142px;
+          padding: 13px 20px;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
+          box-sizing: border-box;
+        }
+
+        .update-card {
+          position: relative;
+          min-width: 0 !important;
+          gap: 0 !important;
+        }
+
+        .warehouse-heading {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 12px;
+          color: #536070;
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .update-time {
+          margin-top: 7px;
+          color: #17202b;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: .01em;
+        }
+
+        .warehouse-freshness {
+          --freshness-color: #687482;
+          --freshness-ring: rgba(104, 116, 130, .1);
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin-top: 5px;
+          color: var(--freshness-color);
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .freshness-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--freshness-color);
+          box-shadow: 0 0 0 3px var(--freshness-ring);
+        }
+
+        .warehouse-freshness.freshness-fresh {
+          --freshness-color: #32a866;
+          --freshness-ring: rgba(50, 168, 102, .12);
+        }
+
+        .warehouse-freshness.freshness-warning {
+          --freshness-color: #d47a1f;
+          --freshness-ring: rgba(212, 122, 31, .12);
+        }
+
+        .warehouse-freshness.freshness-error {
+          --freshness-color: #d34b45;
+          --freshness-ring: rgba(211, 75, 69, .12);
+        }
+
+        .warehouse-freshness.freshness-running {
+          --freshness-color: #347fc4;
+          --freshness-ring: rgba(52, 127, 196, .12);
+        }
+
+        .update-actions {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 6px;
+          width: 100%;
+          margin-top: 9px;
+        }
+
+        .sync-action-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: 1 1 0;
+          width: auto;
+          min-width: 0;
+          height: 30px;
+          padding: 0 10px;
+          border-radius: 7px;
+          font-size: 12px;
+          font-weight: 600;
+          box-sizing: border-box;
+        }
+
+        #automation-run-btn {
+          border-color: #2f86eb;
+          background: #2f86eb;
+          color: #fff;
+        }
+
+        #automation-run-btn::before,
+        #manual-update-btn::before {
+          content: "↻";
+          flex: 0 0 14px;
+          width: 14px;
+          margin-right: 6px;
+          font-size: 14px;
+          line-height: 1;
+          text-align: center;
+        }
+
+        #automation-run-btn:hover {
+          border-color: #2478d8;
+          background: #2478d8;
+          color: #fff;
+        }
+
+        #manual-update-btn {
+          background: var(--ui-surface);
+          color: #475569 !important;
+        }
+
+        .market-center .automation-status-badge {
+          position: static;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: 0 0 auto;
+          max-width: 104px;
+          padding: 2px 8px;
+          box-sizing: border-box;
+        }
+
+        .summary-metrics {
+          display: flex !important;
+          flex-direction: column;
+          justify-content: center;
+          gap: 0 !important;
+          padding: 0 18px;
+          border-left: 1px solid var(--ui-border-soft);
+          border-right: 1px solid var(--ui-border-soft);
+          box-sizing: border-box;
+        }
+
+        .metric-row {
+          min-height: 36px;
+          justify-content: space-between !important;
+          gap: 14px !important;
+          border-bottom: 1px solid var(--ui-border-soft);
+        }
+
+        .metric-row:last-child {
+          border-bottom: 0;
+        }
+
+        .metric-row span:first-child {
+          color: #5f6975;
+          white-space: nowrap;
+        }
+
+        .metric-row span:last-child {
+          color: #17202b;
+          font-size: 17px;
+          font-weight: 700;
+        }
+
+        .market-controls {
+          display: contents !important;
+        }
+
+        .market-center {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 10px;
+          min-width: 0;
+          padding: 0 8px;
+        }
+
+        .market-center .automation-inline {
+          justify-content: flex-start;
+          gap: 10px;
+          color: #536070;
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .toolbar-primary .nav {
+          display: flex;
+          width: 100%;
+          max-width: 560px;
+          align-self: center;
+          gap: 0;
+          transform: none !important;
+        }
+
+        .market-tab {
+          flex: 1 1 0;
+          min-width: 0;
+          border: 1px solid #d9dfe6;
+          border-right-width: 0;
+          background: var(--ui-surface-soft);
+          overflow: hidden;
+        }
+
+        .market-tab:first-child {
+          border-radius: 9px 0 0 9px;
+        }
+
+        .market-tab:last-child {
+          border-right-width: 1px;
+          border-radius: 0 9px 9px 0;
+        }
+
+        .toolbar-primary .nav .market-tab-link {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          min-width: 0;
+          height: 48px;
+          margin: 0;
+          padding: 0 10px;
+          gap: 9px;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
+          box-sizing: border-box;
+        }
+
+        .toolbar-primary .nav .market-tab-link:hover {
+          border: 0;
+          background: #f1f3ef;
+          box-shadow: none;
+          transform: none;
+        }
+
+        .toolbar-primary .nav .market-tab-link.active.yandex {
+          background: #fdf7b2;
+          color: #574f12;
+        }
+
+        .toolbar-primary .nav .market-tab-link.active.ozon {
+          background: #dce9ff;
+          color: #20518f;
+        }
+
+        .toolbar-primary .nav .market-tab-link.active.wildberries {
+          border-color: #e2b8e5;
+          background: #efd3f0;
+          color: #8a238d;
+        }
+
+        .market-brand-icon {
+          width: 22px;
+          height: 22px;
+          flex: 0 0 22px;
+          object-fit: contain;
+        }
+        .market-status-dot {
+          width: 9px;
+          height: 9px;
+          flex: 0 0 9px;
+          border-radius: 50%;
+          background: #c7cbc9;
+          box-shadow: 0 0 0 3px rgba(143, 151, 147, .10);
+          pointer-events: none;
+        }
+
+        .market-status-dot.is-on {
+          background: #2ea56f;
+          box-shadow: 0 0 0 3px rgba(46, 165, 111, .12);
+        }
+
+        .market-switches {
+          align-self: stretch;
+          display: flex !important;
+          flex-direction: column;
+          justify-content: center;
+          gap: 5px !important;
+          min-width: 0 !important;
+          padding: 10px 0 10px 18px;
+          border: 0;
+          border-left: 1px solid var(--ui-border-soft);
+          border-radius: 0;
+          background: transparent;
+          box-sizing: border-box;
+        }
+
+        .control-group-title {
+          margin-bottom: 5px;
+          color: #17202b;
+          font-size: 14px;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
+        .market-switches > label,
+        .market-switches > .market-switch-row {
+          min-height: 27px;
+        }
+
+        .market-switches > label > span,
+        .market-switches > .market-switch-row > span {
+          min-width: 105px !important;
+        }
+
+        .market-switches .control-group-title {
+          transform: translateY(-13px);
+        }
+
+        .supplier-panel {
+          grid-column: 2;
+          grid-row: 1;
+          align-self: stretch;
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: auto repeat(2, 1fr);
+          gap: 7px !important;
+          width: 310px;
+          min-width: 310px !important;
+          margin: 0 !important;
+          padding: 12px;
+          transform: none !important;
+          border: 0;
+          border-left: 1px solid var(--ui-border-soft);
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
+          box-sizing: border-box;
+        }
+
+        .supplier-panel .control-group-title {
+          grid-column: 1 / -1;
+          margin: 0 0 2px;
+        }
+
+        .supplier-row {
+          height: auto;
+          min-height: 36px;
+          padding: 0 10px;
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          background: var(--ui-surface-soft);
+          box-sizing: border-box;
+        }
+
+        .supplier-name {
+          font-size: 13px;
+        }
+
+        .toolbar-secondary {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          display: grid !important;
+          grid-template-columns: max-content minmax(340px, 1fr);
+          align-items: center !important;
+          justify-content: start !important;
+          gap: 12px !important;
+          width: 100% !important;
+          min-height: 86px;
+          margin: 0 !important;
+          padding: 10px 14px;
+          border: 0;
+          border-top: 1px solid var(--ui-border-soft);
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
+          box-sizing: border-box;
+        }
+
+        .quick-actions {
+          width: 155px !important;
+          margin: 0 !important;
+          gap: 6px !important;
+        }
+
+        .quick-action {
+          min-height: 32px !important;
+          padding: 0 9px !important;
+          border-color: #dce2e8 !important;
+          border-radius: 8px !important;
+          background: #fff !important;
+          font-size: 12px !important;
+          box-shadow: none !important;
+        }
+
+        .letter-filter {
+          align-self: center;
+          align-items: flex-start !important;
+        }
+
+        .letter-filter > div {
+          flex-wrap: nowrap !important;
+          gap: 3px !important;
+        }
+
+        .toolbar-secondary .letter-filter a {
+          min-width: 29px;
+          height: 30px !important;
+          padding: 0 5px !important;
+          font-size: 12px !important;
+        }
+
+        .search-tools {
+          width: 100%;
+          min-width: 340px;
+          margin: 0 !important;
+        }
+
+        .search-tools form {
+          width: 100%;
+        }
+
+        .search-tools form > div {
+          flex: 1 1 auto;
+        }
+
+        #custom-search {
+          width: 100% !important;
+          height: 34px;
+          border-color: #dce2e8 !important;
+          border-radius: 8px !important;
+          background: var(--ui-surface-soft);
+          font-size: 13px !important;
+        }
+
+        .search-submit {
+          height: 34px;
+          border-color: #dce2e8 !important;
+          border-radius: 8px !important;
+          background: #fff !important;
+          font-size: 13px !important;
+        }
+
+        .search-subtools {
+          margin-top: 7px;
+        }
+
+        .weekly-schedule {
+          align-self: stretch;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 180px;
+          gap: 12px;
+          min-width: 0;
+          overflow: hidden;
+          padding: 9px 11px;
+          border: 1px solid #dce2e8;
+          border-radius: 9px;
+          background: var(--ui-surface-soft);
+          box-sizing: border-box;
+        }
+
+        .weekly-schedule-main,
+        .weekly-schedule-control {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-width: 0;
+        }
+
+        .weekly-schedule-header,
+        .weekly-schedule-footer {
+          display: flex;
+          align-items: center;
+        }
+
+        .weekly-schedule-header {
+          justify-content: flex-start;
+          gap: 8px;
+          margin-bottom: 3px;
+          transform: translateY(-2px);
+        }
+
+        .weekly-schedule-title {
+          color: #17202b;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+
+        .weekly-schedule-fields {
+          display: grid;
+          grid-template-columns: 60px 44px 58px;
+          align-items: center;
+          column-gap: 5px;
+          row-gap: 4px;
+        }
+
+        .weekly-schedule-label {
+          color: #5f6975;
+          font-size: 11.5px;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+
+        .weekly-schedule select,
+        .weekly-schedule input[type="time"] {
+          width: 100%;
+          height: 27px;
+          padding: 0 5px;
+          border: 1px solid #d9dfe6;
+          border-radius: 6px;
+          background: var(--ui-surface);
+          color: #344050;
+          font: inherit;
+          font-size: 12px;
+          box-sizing: border-box;
+        }
+
+        .time-picker-shell {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 27px;
+          padding: 0 5px;
+          overflow: hidden;
+          border: 1px solid #d9dfe6;
+          border-radius: 6px;
+          background: var(--ui-surface);
+          color: #344050;
+          font-size: 12px;
+          line-height: 1;
+          cursor: pointer;
+          box-sizing: border-box;
+          user-select: none;
+        }
+
+        .time-picker-shell:focus-within {
+          border-color: #4294ee;
+          box-shadow: 0 0 0 2px rgba(66, 148, 238, .12);
+        }
+
+        .time-picker-value {
+          pointer-events: none;
+        }
+
+        .time-picker-storage {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .finite-time-picker {
+          position: fixed;
+          z-index: 10050;
+          width: 142px;
+          padding: 7px;
+          border: 1px solid #d9e0e7;
+          border-radius: 9px;
+          background: var(--ui-surface);
+          box-shadow: 0 10px 28px rgba(31, 45, 61, .18);
+          box-sizing: border-box;
+        }
+
+        .finite-time-picker[hidden] {
+          display: none;
+        }
+
+        .finite-time-picker-head,
+        .finite-time-picker-columns {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px;
+        }
+
+        .finite-time-picker-head {
+          padding: 1px 3px 5px;
+          color: #7b8794;
+          font-size: 10px;
+          font-weight: 600;
+          text-align: center;
+        }
+
+        .finite-time-list {
+          height: 168px;
+          overflow-x: hidden;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scrollbar-width: thin;
+          scrollbar-color: #c7d0da transparent;
+          border: 1px solid #e2e7ec;
+          border-radius: 6px;
+          background: #f9fafb;
+          scroll-snap-type: y proximity;
+        }
+
+        .finite-time-option {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 28px;
+          padding: 0;
+          scroll-snap-align: start;
+          border: 0;
+          border-bottom: 1px solid var(--ui-border-soft);
+          background: transparent;
+          color: #344050;
+          font: inherit;
+          font-size: 12px;
+          cursor: pointer;
+        }
+
+        .finite-time-option:last-child {
+          border-bottom: 0;
+        }
+
+        .finite-time-option:hover {
+          background: #edf5ff;
+        }
+
+        .finite-time-option.is-selected {
+          background: #328ce5;
+          color: #fff;
+          font-weight: 700;
+        }
+
+        .weekly-schedule-control {
+          gap: 9px;
+          padding-left: 12px;
+          border-left: 1px solid #e3e7ec;
+        }
+
+        .weekly-schedule-footer {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 6px;
+          min-width: 0;
+        }
+
+        .weekly-schedule-status {
+          flex: 1 1 100%;
+          overflow: hidden;
+          text-align: right;
+          color: #788390;
+          font-size: 11px;
+          line-height: 1.25;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .weekly-schedule-save {
+          flex: 0 0 auto;
+          height: 27px;
+          padding: 0 10px;
+          border: 1px solid #2f86eb;
+          border-radius: 6px;
+          background: #2f86eb;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .weekly-schedule.is-disabled .weekly-schedule-fields {
+          opacity: .5;
+        }
+
+        .weekly-schedule-save:disabled {
+          border-color: #d7dde4;
+          background: #e7ebef;
+          color: #929ca7;
+          cursor: default;
+          opacity: 1;
+        }
+
+        .table-wrapper {
+          height: calc(100vh - 313px) !important;
+          min-height: 280px;
+        }
+
+        /* Компактная desktop-разметка для обычного окна браузера */
+        @media (max-width: 1700px) {
+          .wrapper.app-shell {
+            padding-right: 14px;
+            padding-left: 14px;
+          }
+
+          .app-toolbar {
+            grid-template-columns: minmax(0, 1fr) 260px;
+            gap: 0 !important;
+          }
+
+          .toolbar-primary {
+            grid-template-columns: 195px 190px minmax(0, 1fr);
+            gap: 10px !important;
+            padding: 12px 15px;
+          }
+
+          .supplier-panel {
+            width: 260px;
+            min-width: 260px !important;
+            padding: 12px;
+          }
+
+          .supplier-row {
+            padding-right: 7px;
+            padding-left: 7px;
+          }
+
+          .toolbar-secondary {
+            grid-template-columns: max-content minmax(340px, 1fr);
+            gap: 8px !important;
+            padding: 10px;
+          }
+
+          .quick-actions {
+            width: 145px !important;
+          }
+
+          .weekly-schedule {
+            grid-template-columns: minmax(0, 1fr) 165px;
+            gap: 8px;
+            padding-right: 8px;
+            padding-left: 8px;
+          }
+
+          .weekly-schedule-fields {
+            grid-template-columns: 52px 38px 58px;
+            column-gap: 3px;
+            row-gap: 4px;
+          }
+
+          .weekly-schedule-label,
+          .weekly-schedule select,
+          .time-picker-shell,
+          .weekly-schedule input[type="time"] {
+            font-size: 11px;
+          }
+
+          .weekly-schedule-control {
+            padding-left: 6px;
+          }
+        }
+
+
+
+        /* Компактная компоновка: алфавит расположен под маркетплейсами. */
+        .toolbar-primary {
+          grid-template-columns: 205px 205px minmax(715px, 1fr);
+        }
+
+        .app-toolbar {
+          grid-template-columns: minmax(0, 1fr) 260px;
+        }
+
+        .summary-metrics {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .summary-metrics .metric-row {
+          gap: 8px !important;
+        }
+
+        .supplier-panel {
+          width: 260px;
+          min-width: 260px !important;
+          gap: 6px !important;
+          padding: 10px;
+        }
+
+        .supplier-row {
+          padding-right: 7px;
+          padding-left: 7px;
+        }
+        .market-controls {
+          display: grid !important;
+          grid-template-columns: minmax(415px, 1fr) minmax(120px, 220px);
+          grid-template-areas:
+            "market market"
+            "alphabet tools";
+          align-self: start;
+          align-items: start;
+          justify-content: stretch;
+          column-gap: 12px;
+          row-gap: 8px;
+          min-width: 0;
+          width: 100%;
+          padding: 0 8px;
+          overflow: hidden;
+          box-sizing: border-box;
+        }
+
+        .market-center {
+          grid-area: market;
+          width: 100%;
+          justify-content: flex-start;
+          padding: 0;
+          transform: translateY(-3px);
+        }
+
+        .update-card .warehouse-heading {
+          gap: 8px;
+          white-space: nowrap;
+        }
+
+        .update-card .warehouse-freshness {
+          margin-top: 0;
+          font-weight: 600;
+        }
+
+        .update-card .update-time {
+          margin-top: 6px;
+          font-size: 21px;
+          line-height: 1.2;
+        }
+
+        .update-card .update-actions {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 6px;
+          width: 175px;
+          margin-top: 12px;
+        }
+
+        .update-card .sync-action-btn {
+          flex: 0 0 29px;
+          width: 100%;
+          height: 29px;
+        }
+
+        .search-input-shell {
+          position: relative;
+          min-width: 0;
+        }
+
+        #custom-search::-webkit-search-cancel-button {
+          display: none;
+          -webkit-appearance: none;
+        }
+
+        .search-clear {
+          position: absolute;
+          top: 50%;
+          right: 8px;
+          width: 24px;
+          height: 24px;
+          display: grid;
+          place-items: center;
+          padding: 0;
+          transform: translateY(-50%);
+          border: 0;
+          border-radius: 50%;
+          color: #68717d;
+          background: transparent;
+          font: 20px/1 "Segoe UI", Arial, sans-serif;
+          cursor: pointer;
+        }
+
+        .search-clear:hover {
+          color: #20242a;
+          background: #e9edf2;
+        }
+
+        .search-clear[hidden] {
+          display: none;
+        }
+        .market-controls .search-tools form {
+          min-width: 0;
+        }
+
+        .market-controls .search-submit {
+          flex: 0 0 auto;
+        }
+        .market-controls #custom-search {
+          min-width: 0 !important;
+          max-width: 100%;
+        }
+
+        .market-controls .search-tools {
+          grid-area: tools;
+          align-self: start;
+          justify-self: start;
+          min-width: 0;
+          width: 100%;
+          max-width: 220px;
+          margin: 0 !important;
+        }
+
+        .market-controls .search-subtools {
+          justify-content: flex-start;
+          margin-top: 3px;
+        }
+        .toolbar-primary .letter-filter {
+          grid-area: alphabet;
+          min-width: 0;
+          width: 100%;
+          max-width: 445px;
+          align-self: start;
+          align-items: flex-start !important;
+        }
+
+        .toolbar-primary .letter-filter > div {
+          display: grid !important;
+          width: 100%;
+          gap: 3px !important;
+        }
+
+        .toolbar-primary .letter-filter > div:first-child {
+          grid-template-columns: minmax(38px, 1.35fr) repeat(13, minmax(26px, 1fr));
+        }
+
+        .toolbar-primary .letter-filter > div:last-child {
+          grid-template-columns: repeat(13, minmax(26px, 1fr)) minmax(38px, 1.35fr);
+        }
+
+        .toolbar-primary .letter-filter a {
+          min-width: 0;
+          width: 100%;
+          height: 27px !important;
+          padding: 0 4px !important;
+          overflow: hidden;
+          font-size: 13px !important;
+          text-overflow: clip;
+          white-space: nowrap;
+        }
+
+
+
+        .app-toolbar .warehouse-heading {
+          font-size: 14px;
+        }
+
+        .app-toolbar .warehouse-freshness {
+          font-size: 13px;
+        }
+
+        .app-toolbar .sync-action-btn {
+          font-size: 13px;
+        }
+
+        .app-toolbar .summary-metrics .metric-row span:first-child {
+          font-size: 15px;
+        }
+
+        .app-toolbar .summary-metrics .metric-row span:last-child {
+          font-size: 18px;
+        }
+
+        .app-toolbar .market-tab-link {
+          font-size: 16px;
+        }
+
+        .app-toolbar #custom-search {
+          font-size: 14px !important;
+        }
+
+        .app-toolbar .markup-tools > span,
+        .app-toolbar #btn-markdown-dec,
+        .app-toolbar #btn-markdown-inc {
+          font-size: 15px !important;
+        }
+
+        .app-toolbar .supplier-panel .control-group-title {
+          font-size: 15px;
+        }
+
+        .app-toolbar .supplier-name {
+          font-size: 14px !important;
+        }
+        body.compact .sticky-input input,
+        body.compact .sticky-input select,
+        body.compact .sticky-input button {
+          font-size: 13px;
+        }
+        @media (max-width: 1700px) {
+          .app-toolbar {
+            grid-template-columns: minmax(0, 1fr) 240px;
+          }
+
+          .supplier-panel {
+            width: 240px;
+            min-width: 240px !important;
+            padding: 9px;
+          }
+          .toolbar-primary {
+            grid-template-columns: 195px 190px minmax(0, 1fr);
+          }
+
+        }
+
+        /* Пропорции верхней панели: 17% / 17% / 49% / 17%. */
+        .app-toolbar {
+          grid-template-columns: minmax(0, 83fr) minmax(240px, 17fr);
+        }
+
+        .toolbar-primary {
+          grid-template-columns: minmax(0, 20.5fr) minmax(0, 20.5fr) minmax(0, 59fr);
+        }
+
+        .supplier-panel {
+          width: 100%;
+          min-width: 0 !important;
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+    </style>
+</head>
+<body class="compact">
+{% include "_app_header.html" %}
+<div id="copy-tooltip" class="copy-tooltip"></div>
+<div class="wrapper app-shell">
+    <div class="top-panel app-toolbar" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: nowrap; gap: 12px; margin-bottom: 0px;">
+      <div class="toolbar-main" style="display: flex; align-items: flex-start; gap: 12px;">
+          <!-- Левая часть: информация о складе и блок поиска -->
+          <div class="toolbar-stack" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+            <!-- Первый блок: Sklad обновлен и статистика -->
+            <div id="first-block-row" class="toolbar-primary" style="display: flex; gap: 30px; align-items: flex-start;">
+                <div class="update-card" style="font-size: 15px; color: #555; display: flex; flex-direction: column; gap: 6px; min-width: 200px;">
+                  <div class="warehouse-heading">
+                    <span>Данные склада:</span>
+                    <div id="cycle-freshness"
+                         class="warehouse-freshness freshness-{{ automation_status.freshness_status }}"
+                         title="{{ automation_status.freshness_title }}">
+                      <span class="freshness-dot"></span>
+                      <span id="cycle-freshness-label">{{ automation_status.freshness_label }}</span>
+                    </div>
+                  </div>
+                  <div class="update-time">{{ last_download_time or '—' }}</div>
+                  <div class="update-actions">
+                    <button type="button"
+                            class="sync-action-btn"
+                            id="automation-run-btn"
+                            title="Обновить склад, отправить остатки и цены, проверить заказы"
+                            {% if automation_status.running %}disabled{% endif %}>Обновить всё</button>
+                    <button type="button"
+                            class="sync-action-btn"
+                            id="manual-update-btn"
+                            title="Получить свежие данные поставщиков и обновить локальные таблицы">
+                      Обновить склад
+                    </button>
+                  </div>
+                </div>
+        
+                {% if stats %}
+                <div class="summary-metrics" style="font-size: 15px; color: #555; display: flex; flex-direction: column; gap: 6px; min-width: 160px;">
+                  <div class="metric-row" style="display: flex; align-items: center; gap: 8px;">
+                    <span>Всего товаров:</span>
+                    <span>{{ stats['Всего товаров'] }}</span>
+                  </div>
+                  <div class="metric-row" style="display: flex; align-items: center; gap: 8px;">
+                    <span>В наличии:</span>
+                    <span>{{ stats['В наличии'] }}</span>
+                  </div>
+                  <div class="metric-row" style="display: flex; align-items: center; gap: 8px;">
+                    <span>Отключено:</span>
+                    <span>{{ stats['Отключено'] }}</span>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Группа навигации и глобальных переключателей (рядом с первым блоком) -->
+                <div class="market-controls" style="display: flex; align-items: center; gap: 12px;">
+                  <div class="market-center">
+                    <div class="nav">
+                      {% set marketplace_tabs = [
+                        ('wildberries', 'Wildberries', 'wildberries-sign-logo.svg'),
+                        ('yandex', 'Yandex', 'yandex-market-sign-logo.svg'),
+                        ('ozon', 'Ozon', 'ozon-icon-logo.svg')
+                      ] %}
+                      {% for mp, label, icon in marketplace_tabs %}
+                        <div class="market-tab">
+                          <a href="/table/{{ mp }}?search={{ request.args.get('search', '') }}&letter={{ request.args.get('letter', '') }}"
+                             class="market-tab-link {{ mp }}{% if selected_table == mp %} active{% endif %}"
+                             title="{{ label }}: {{ 'включён' if global_stock_flags[mp] else 'отключён' }}">
+                            <img class="market-brand-icon" src="{{ url_for('static', filename='images/marketplaces/' ~ icon) }}" alt="" aria-hidden="true">
+                            <span>{{ label }}</span>
+                            <i class="market-status-dot {{ 'is-on' if global_stock_flags[mp] else 'is-off' }}"
+                               data-market-status="{{ mp }}"
+                               aria-label="{{ 'Включён' if global_stock_flags[mp] else 'Отключён' }}"></i>
+                          </a>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                              <!-- Алфавит -->
+                <div class="letter-filter" style="display:flex; flex-direction:column; gap: var(--stack-gap);">
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  {% set row1 = ['0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'] %}
+                  {% for letter in row1 %}
+                    <a href="{{ url_for('show_table', table_name=selected_table, letter=letter, search=request.args.get('search', '')) }}"
+                       class="{% if request.args.get('letter') == letter %}active{% endif %}">
+                      {{ letter }}
+                    </a>
+                  {% endfor %}
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  {% set row2 = ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'А-Я'] %}
+                  {% for letter in row2 %}
+                    <a href="{{ url_for('show_table', table_name=selected_table, letter=letter, search=request.args.get('search', '')) }}"
+                       class="{% if request.args.get('letter') == letter %}active{% endif %}">
+                      {{ letter }}
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Поисковая форма -->
+              <div class="search-tools" style="display:flex; flex-direction:column; gap: var(--stack-gap); margin-left: 10px;">
+                  <form method="GET" action="/table/{{ selected_table }}"
+                        style="display: flex; align-items: center; gap: 10px;">
+                    <div class="search-input-shell" style="position: relative;">
+                      <input type="search" id="custom-search" name="search"
+                       placeholder="Поиск:"
+                       value="{{ request.args.get('search', '') }}"
+                       autocomplete="off"
+                       aria-label="Динамический поиск товаров"
+                       style="font-size: 15px; padding: 6px 38px 6px 12px; border-radius: 6px;
+                              width: 300px; box-sizing: border-box; border: 1px solid #ccc;">
+                      <button type="button"
+                              class="search-clear"
+                              id="clear-search-new"
+                              aria-label="Очистить поиск"
+                              title="Очистить поиск"
+                              {% if not request.args.get('search', '') %}hidden{% endif %}>×</button>
+                    </div>
+                  </form>
+                  <div class="search-subtools" style="font-size: 13px; color: #777; display: flex; align-items: center; gap: 10px;">
+
+                      <!-- Групповая корректировка наценки -->
+                      <div class="markup-tools" style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:14px; color:#555;">Наценка:</span>
+                        <button type="button" id="btn-markdown-dec"
+                                style="padding:2px 8px; border:1px solid #ccc; border-radius:6px; background:#f8f8f8; cursor:pointer;">
+                          −1%
+                        </button>
+                        <button type="button" id="btn-markdown-inc"
+                                style="padding:2px 8px; border:1px solid #ccc; border-radius:6px; background:#f8f8f8; cursor:pointer;">
+                          +1%
+                        </button>
+                      </div>
+                    </div>
+
+                    <script>
+                    (function(){
+                      const selected = "{{ selected_table }}";
+                      function adjust(delta){
+                        document.getElementById('btn-markdown-dec')?.setAttribute('disabled', 'disabled');
+                        document.getElementById('btn-markdown-inc')?.setAttribute('disabled', 'disabled');
+
+                        fetch(`/bulk_markup/${selected}`, {
+                          method: 'POST',
+                          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                          body: `delta=${delta}`
+                        }).then(r => {
+                          if (r.ok){
+                            Swal.fire({
+                              toast:true, position:'top-end', icon:'success',
+                              title: (delta>0?'+1%':'-1%')+' применено',
+                              showConfirmButton:false, timer:1500
+                            });
+                            location.reload();
+                          } else {
+                            Swal.fire('Ошибка', 'Не удалось изменить наценку', 'error');
+                          }
+                        }).catch(() => {
+                          Swal.fire('Ошибка', 'Сетевая ошибка', 'error');
+                        }).finally(()=>{
+                          document.getElementById('btn-markdown-dec')?.removeAttribute('disabled');
+                          document.getElementById('btn-markdown-inc')?.removeAttribute('disabled');
+                        });
+                      }
+                      document.getElementById('btn-markdown-dec')?.addEventListener('click', ()=>adjust(-1));
+                      document.getElementById('btn-markdown-inc')?.addEventListener('click', ()=>adjust(1));
+                    })();
+                    </script>
+
+                </div>
+                </div>
+            </div>
+            <!-- / Первый блок -->
+
+
+          </div>
+          
+          <!-- Правая часть: кнопки МП, переключатели и поставщики -->
+          <!-- Удалена: кнопки и переключатели перенесены рядом с левым блоком -->
+          <div style="display:none"></div>
+      </div>
+      <!-- Третий блок: поставщики (прижат вправо) -->
+      <div class="supplier-panel" style="font-size: 15px; color: #555; display: flex; flex-direction: column; gap: 6px; min-width: 120px;">
+        <div class="control-group-title">Поставщики</div>
+        {% for supplier in suppliers_list %}
+            <div class="supplier-row" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <span class="supplier-name">{{ supplier }}</span>
+
+              <label class="toggle-switch">
+                <input type="checkbox"
+                       class="supplier-toggle"
+                       data-supplier="{{ supplier }}"
+                       {% if global_stock_flags['suppliers'].get(supplier, True) %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          {% endfor %}
+      </div>
+    </div>
+  
+        {% if table_data is not none %}
+            <div class="table-container">
+              <!-- Фиксированные заголовки -->
+              <div class="sticky-header header-{{ selected_table }}">
+                {% for col in table_data.columns %}
+                  <div class="header-cell {% if col.strip() == 'Модель' %}text-left{% else %}text-center{% endif %}">
+                    <a href="{{ url_for(
+                        'show_table',
+                        table_name=selected_table,
+                        search=request.args.get('search', ''),
+                        letter=request.args.get('letter', ''),
+                        sort=col,
+                        order=(
+                            'asc' if sort_column == col and sort_order == 'desc'
+                            else 'desc' if sort_column == col
+                            else ('desc' if col == 'Нал' else 'asc')
+                        )
+                    ) }}">
+                      {{ 'Изменено' if col == 'Дата изменения' else col }}
+                    </a>
+                  </div>
+                {% endfor %}
+                <div class="header-cell text-center">Действия</div>
+              </div>
+
+
+              <script>
+                window.addEventListener('DOMContentLoaded', function () {
+                    const saved = sessionStorage.getItem('add_form_data');
+                    if (saved) {
+                        const values = JSON.parse(saved);
+                        Object.keys(values).forEach(name => {
+                            const input = document.querySelector(`[name="${name}"]`);
+                            if (input) input.value = values[name];
+                        });
+                    }
+                });
+              </script>
+
+              <!-- Фиксированная строка ввода -->
+              <div class="sticky-input header-{{ selected_table }}">
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const saved = sessionStorage.getItem('add_form_data');
+                        if (saved) {
+                            const values = JSON.parse(saved);
+                            Object.keys(values).forEach(name => {
+                                const input = document.querySelector(`[name="${name}"]`);
+                                if (input) input.value = values[name];
+                            });
+                        }
+                    });
+                </script>
+
+                <form method="POST" action="/add/{{ selected_table }}" style="display: contents;">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <script>
+                      (function () {
+                        // Находим форму добавления, это та, у которой action начинается с /add/
+                        const addForm = document.querySelector('form[action^="/add/"]');
+                        if (!addForm) return;
+
+                        addForm.addEventListener('submit', function (e) {
+                          try {
+                            const formData = new FormData(addForm);
+
+                            // Базовые обязательные поля. Отредактируй список под свою логику, если нужно.
+                            const requiredFields = ['Sklad', 'Модель', 'Нал', 'Опт', '%'];
+
+                            // Группа полей поставщиков — требуем, чтобы было заполнено хотя бы одно из них
+
+
+                            let missing = [];
+
+                            // Проверка базовых обязательных
+                            requiredFields.forEach(field => {
+                              const val = (formData.get(field) || '').trim();
+                              if (!val) missing.push(field);
+                            });
+
+                            // Проверка «хотя бы один поставщик»
+                            const hasAnySupplier = supplierFields.some(f => ((formData.get(f) || '').trim().length > 0));
+                            if (!hasAnySupplier) {
+                              missing.push('Invask/Okno/United (минимум одно поле)');
+                            }
+
+                            if (missing.length > 0) {
+                              e.preventDefault();
+                              alert('Заполните обязательные поля:\n• ' + missing.join('\n• '));
+                              return false;
+                            }
+
+                            // Если артикулы у поставщиков должны быть строго числовые — раскомментируй блок ниже
+                            /*
+                            supplierFields.forEach(f => {
+                              const v = (formData.get(f) || '').trim();
+                              if (v && !/^\d+$/.test(v)) {
+                                e.preventDefault();
+                                alert('Поле ' + f + ' должно содержать только цифры.');
+                                throw new Error('Validation failed: ' + f);
+                              }
+                            });
+                            */
+                          } catch (err) {
+                            // Мягко гасим любые JS-ошибки, чтобы не ломать страницу
+                            console.warn('[validate add form]', err);
+                          }
+                        });
+                      })();
+                    </script>
+
+                  {% for col in table_data.columns %}
+                      <div class="input-cell {% if col.strip() == 'Модель' %}text-left{% else %}text-center{% endif %}">
+                        {% if col.strip() not in ['№', 'Дата изменения', 'Цена'] %}
+                          {% if col.strip() == 'Нал' %}
+                            <!-- Поле "Нал" скрыто, всегда = 0 -->
+                            <input type="hidden" name="Нал" value="0">
+                          {% elif col.strip() == 'Статус' %}
+                            <select name="Статус">
+                              <option value=""></option>
+                              <option value="выкл.">выкл.</option>
+                            </select>
+                          {% else %}
+                            <input
+                                type="text"
+                                name="{{ col }}"
+                                value="{{ saved_form_data.get(col, '') }}"
+                                {% if col in ['Опт', '%', 'Sklad', 'WB Barcode', 'WB Артикул'] %}
+                                  inputmode="numeric" pattern="\d*" maxlength="20"
+                                  oninput="this.value = this.value.replace(/\D/g, '')"
+                                {% endif %}
+                                {% if col in ['Sklad', 'Модель', 'Опт', '%', 'WB Barcode', 'WB Артикул'] %}
+                                  required
+                                {% endif %}
+                            >
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+
+                  <div class="input-cell text-center">
+                    <button type="submit"
+                            class="add-button add-button-{{ selected_table }}"
+                            {% if editing_row_id %}disabled{% endif %}>
+                        Добавить
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Основная таблица -->
+              <div class="table-wrapper" style="min-height: 160px; overflow-y: auto; overflow-x: hidden;">
+                <table class="main-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                  <tbody>
+
+                  {% for row in table_data.values.tolist() %}
+                  <tr data-active-supplier="{{ active_suppliers[loop.index0] if active_suppliers else '' }}">
+                      {% for col, item in zip(table_data.columns, row) %}
+                        {% set value = item if item is not none else '' %}
+                        <td class="{% if col.strip() == 'Модель' %}text-left{% elif col.strip() == 'Комментарий' %}comment-cell{% else %}text-center{% endif %}{% if col.strip() in ['Invask', 'Okno', 'United'] %} text-muted{% endif %}"
+                            {% if col.strip() in ['Модель', 'Комментарий'] and value|length > 35 %}title="{{ value }}"{% endif %}>
+                          {% if col.strip() in ['Опт', 'Цена'] %}
+                          {% if value is number %}
+                            <span class="price-cell">
+                              <span class="price-value">{{ '{:,.0f}'.format(value).replace(',', ' ') }}</span>
+                              <span class="price-symbol">р.</span>
+                            </span>
+                          {% else %}
+                            {{ value }}
+                          {% endif %}
+                        {% elif col.strip() == '%' %}
+                          {{ value }} %
+                        {% else %}
+                          {{ value }}
+                        {% endif %}
+                        </td>
+                      {% endfor %}
+                      <td class="text-center action-cell">
+                        <button type="button" class="edit-btn" style="border:none; background:none; cursor:pointer;">
+                          <img src="{{ url_for('static', filename='icons/file-edit.svg') }}" alt="Редактировать" width="18">
+                        </button>
+                        <form method="post" action="/delete/{{ selected_table }}/{{ row[table_data.columns.get_loc('Sklad')] }}" class="delete-form" style="display:inline;">
+                          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="item_name" value="{{ row[table_data.columns.get_loc('Модель')] }}">
+                          <button type="button" class="delete-btn" style="border:none; background:none; cursor:pointer;">
+                            <img src="{{ url_for('static', filename='icons/trash.svg') }}" alt="Удалить" width="18">
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+                  <script>
+                    (function() {
+                      // 1) Список имён колонок из DataFrame → узнаём индексы по названиям
+                      const headers = {{ table_data.columns.tolist() | tojson }};
+                      const idx = {};
+                      headers.forEach((h, i) => idx[h] = i);
+
+                      // 2) Только эти четыре поставщика подсвечиваем
+                      const supplierCols = ['Sklad', 'Invask', 'Okno', 'United'];
+
+                      // 3) Для каждой строки подсветим ячейку активного поставщика
+                      document.querySelectorAll('.main-table tbody tr').forEach(tr => {
+                        const sup = (tr.getAttribute('data-active-supplier') || '').trim();
+                        if (!supplierCols.includes(sup)) return;
+
+                        const colIdx = idx[sup];
+                        if (typeof colIdx !== 'number') return;
+
+                        const td = tr.children[colIdx];
+                        if (!td) return;
+
+                        td.classList.add('supplier-active'); // мягкая подсветка
+                        if (!td.title) td.title = `Актуальный поставщик: ${sup}`; // необязательная подсказка
+                      });
+                    })();
+                    </script>
+              </div>
+            </div>
+            
+        {% endif %}
+</div>
+    <!-- === FULLSCREEN OVERLAY === -->
+    <div id="screen-overlay" hidden>
+      <div class="overlay-box" role="alert" aria-live="assertive" aria-busy="true">
+        <div class="overlay-title" id="overlay-title">Выполняется операция…</div>
+        <div class="overlay-note" id="overlay-note">Пожалуйста, подождите. Элементы интерфейса временно недоступны.</div>
+        <div class="progress" aria-hidden="true">
+          <div class="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/sweetalert2.all.min.js') }}"></script>
+    <script>
+    // Синхронизация размеров Grid с реальной таблицей
+    function syncColumnWidths() {
+        const mainTable = document.querySelector('.main-table');
+        const stickyHeader = document.querySelector('.sticky-header');
+        const stickyInput = document.querySelector('.sticky-input');
+        const tableWrapper = document.querySelector('.table-wrapper');
+        
+        if (!mainTable || !stickyHeader || !stickyInput || !tableWrapper) return;
+        
+        const selectedTable = "{{ selected_table }}";
+        const storageKey = `tableColumnWidths_${selectedTable}`;
+        
+        // Ждем когда таблица полностью отрендерится
+        setTimeout(() => {
+            const firstRow = mainTable.querySelector('tbody tr');
+            
+            if (firstRow) {
+                // Есть данные в таблице - измеряем и сохраняем размеры
+                const cells = firstRow.querySelectorAll('td');
+                const headerCells = stickyHeader.children;
+                const inputCells = stickyInput.children;
+                
+                let totalWidth = 0;
+                const widths = [];
+                
+                // Измеряем реальные ширины ячеек таблицы
+                for (let i = 0; i < cells.length; i++) {
+                    const width = cells[i].offsetWidth;
+                    widths.push(width + 'px');
+                    totalWidth += width;
+                }
+                
+                // Проверяем, нужен ли скроллбар
+                const hasScrollbar = tableWrapper.scrollHeight > tableWrapper.clientHeight;
+                const scrollbarWidth = hasScrollbar ? (tableWrapper.offsetWidth - tableWrapper.clientWidth) : 0;
+                
+                // Сохраняем размеры в localStorage
+                const widthsData = {
+                    widths: widths,
+                    totalWidth: totalWidth + 'px',
+                    gridTemplate: widths.join(' '),
+                    scrollbarWidth: scrollbarWidth
+                };
+                localStorage.setItem(storageKey, JSON.stringify(widthsData));
+                
+                // Применяем эти ширины к Grid
+                stickyHeader.style.gridTemplateColumns = widthsData.gridTemplate;
+                stickyInput.style.gridTemplateColumns = widthsData.gridTemplate;
+                stickyHeader.style.width = widthsData.totalWidth;
+                stickyInput.style.width = widthsData.totalWidth;
+                
+                console.log('Синхронизированы и сохранены ширины:', widthsData.gridTemplate, 'Скроллбар:', scrollbarWidth + 'px');
+            } else {
+                // Нет данных в таблице - используем сохраненные размеры
+                const savedWidthsData = localStorage.getItem(storageKey);
+                
+                if (savedWidthsData) {
+                    try {
+                        const widthsData = JSON.parse(savedWidthsData);
+                        
+                        // Применяем сохраненные размеры к Grid
+                        stickyHeader.style.gridTemplateColumns = widthsData.gridTemplate;
+                        stickyInput.style.gridTemplateColumns = widthsData.gridTemplate;
+                        stickyHeader.style.width = widthsData.totalWidth;
+                        stickyInput.style.width = widthsData.totalWidth;
+                        
+                        console.log('Применены сохраненные ширины:', widthsData.gridTemplate);
+                    } catch (e) {
+                        console.error('Ошибка при чтении сохраненных размеров:', e);
+                        // Если не удалось прочитать сохраненные размеры, используем стандартные
+                        applyDefaultWidths();
+                    }
+                } else {
+                    // Если нет сохраненных размеров, используем стандартные
+                    applyDefaultWidths();
+                }
+            }
+        }, 100);
+    }
+    
+    // Функция для применения стандартных размеров при отсутствии данных и сохраненных размеров
+    function applyDefaultWidths() {
+        const stickyHeader = document.querySelector('.sticky-header');
+        const stickyInput = document.querySelector('.sticky-input');
+        
+        if (!stickyHeader || !stickyInput) return;
+        
+        const selectedTable = "{{ selected_table }}";
+        
+        // Стандартные размеры из CSS
+        let defaultWidths, defaultTotalWidth;
+        
+        if (selectedTable === 'wildberries') {
+            // Специальные размеры для Wildberries (№ + 14 данных; без «Действия»)
+            defaultWidths =
+                '23px 70px 105px 80px 75px 105px 80px 253px 50px 30px 68px 58px 68px 126px 111px';
+            // Сумма ~ 1102px; можно округлить
+            defaultTotalWidth = '1105px';
+        } else {
+            // Стандартные размеры для Yandex и Ozon
+            defaultWidths = '30px 80px 90px 80px 250px 70px 60px 90px 70px 100px 180px 80px';
+            defaultTotalWidth = '1180px';
+        }
+        
+        stickyHeader.style.gridTemplateColumns = defaultWidths;
+        stickyInput.style.gridTemplateColumns = defaultWidths;
+        stickyHeader.style.width = defaultTotalWidth;
+        stickyInput.style.width = defaultTotalWidth;
+        
+        console.log('Применены стандартные ширины для', selectedTable + ':', defaultWidths);
+    }
+
+    function applySavedWidths() {
+        const stickyHeader = document.querySelector('.sticky-header');
+        const stickyInput = document.querySelector('.sticky-input');
+        const selectedTable = "{{ selected_table }}";
+        const storageKey = `tableColumnWidths_${selectedTable}`;
+        const saved = localStorage.getItem(storageKey);
+        if (stickyHeader && stickyInput && saved) {
+            try {
+                const data = JSON.parse(saved);
+                stickyHeader.style.gridTemplateColumns = data.gridTemplate;
+                stickyInput.style.gridTemplateColumns = data.gridTemplate;
+                stickyHeader.style.width = data.totalWidth;
+                stickyInput.style.width = data.totalWidth;
+            } catch(e) {
+                console.warn('Не удалось применить сохранённые размеры');
+            }
+        }
+    }
+
+    // Запускаем синхронизацию после загрузки
+    document.addEventListener('DOMContentLoaded', function() {
+        applySavedWidths();
+        syncColumnWidths();
+        // Повторяем несколько раз для надежности
+        setTimeout(syncColumnWidths, 200);
+        setTimeout(syncColumnWidths, 500);
+        setTimeout(syncColumnWidths, 1000);
+    });
+    
+    // Синхронизируем при изменении размера окна
+    window.addEventListener('resize', syncColumnWidths);
+    </script>
+    <script>
+    document.querySelectorAll('.delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const form = this.closest('form');
+            const itemName = form.querySelector('input[name="item_name"]').value;
+
+            Swal.fire({
+                title: `Удалить товар "${itemName}"?`,
+                text: "Это действие нельзя отменить!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Да, удалить',
+                cancelButtonText: 'Отмена'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+    </script>
+
+    <script>
+    document.querySelectorAll('.edit-btn').forEach(function(button) {
+        button.addEventListener('click', function () {
+            const row = this.closest('tr');
+            isEditingRow = true;
+            row.classList.add('highlighted');
+
+            const table = "{{ selected_table }}";
+            const headers = {{ table_data.columns.tolist() | tojson }};
+            const cells = row.querySelectorAll('td');
+            const indexOfArtMC = headers.indexOf("Sklad");
+            const itemId = cells[indexOfArtMC].innerText.trim();
+
+
+            const numericFields = ['Опт', 'Цена', '%', 'Нал'];
+            const recalcPrices = () => {
+                const optInput = row.querySelector('input[name="Опт"]');
+                const markupInput = row.querySelector('input[name="%"]');
+
+                const opt = parseFloat(optInput?.value.replace(/\s/g, ''));
+                const markup = parseFloat(markupInput?.value.replace(/\s/g, ''));
+
+                if (!isNaN(opt) && !isNaN(markup)) {
+                    const newPrice = Math.round(opt + (opt * markup / 100));
+                    ['Цена'].forEach(field => {
+                        const td = row.querySelector(`td[data-price-target="${field}"]`);
+                        if (td) {
+                            td.innerText = newPrice.toLocaleString('ru-RU') + ' р.';
+                        }
+                    });
+                }
+            };
+
+            // Заменяем td на input'ы
+            for (let i = 0; i < headers.length; i++) {
+                const td = cells[i];
+                if (['Модель', 'Комментарий'].includes(headers[i].trim())) {
+                    td.classList.add('text-left');
+                    td.classList.remove('text-center');
+                } else {
+                    td.classList.add('text-center');
+                    td.classList.remove('text-left');
+                }
+                const val = td.innerText.trim();
+
+                const skipInputFields = ['№', 'Sklad', 'Цена', 'Дата изменения'];
+
+                if (!headers[i] || skipInputFields.includes(headers[i])) {
+                    if (headers[i] === 'Цена') {
+                        td.setAttribute('data-price-target', 'Цена');  // 💡 Помечаем td для JS-пересчёта
+                    }
+                    continue;
+                }
+                td.style.width = td.offsetWidth + 'px';
+                td.innerHTML = '';
+                let input;
+                if (headers[i] === 'Поставщик') {
+                    input = document.createElement('select');
+                    input.name = 'Поставщик';
+                    ['','Sklad','United','Invask','Okno'].forEach(optVal => {
+                        const option = document.createElement('option');
+                        option.value = optVal;
+                        option.textContent = optVal;
+                        if (optVal === val) option.selected = true;
+                        input.appendChild(option);
+                    });
+                } else if (headers[i] === 'Статус') {
+                    input = document.createElement('select');
+                    input.name = 'Статус';
+                    ['','выкл.'].forEach(optVal => {
+                        const option = document.createElement('option');
+                        option.value = optVal;
+                        option.textContent = optVal;
+                        if (optVal === val) option.selected = true;
+                        input.appendChild(option);
+                    });
+                } else {
+                    input = document.createElement('input');
+                    if (headers[i] === 'Комментарий') {
+                        td.classList.add('comment-cell');
+                        input.style.minWidth = '210px';
+                        input.style.maxWidth = '280px';
+                    }
+                    input.name = headers[i];
+                    if (headers[i] === 'Нал') {
+                        const onoffSelect = row.querySelector('select[name="Статус"]');
+                        if (onoffSelect && onoffSelect.value === 'выкл.') {
+                            input.value = '0';
+                            input.disabled = true;
+                        }
+                    }
+                    if (numericFields.includes(headers[i])) {
+                        input.value = val.replace(/\s/g, '').replace('р.', '').replace('%', '');
+                    } else {
+                        input.value = val;
+                    }
+                    input.style.width = '100%';
+                    input.type = 'text';
+                    if (numericFields.includes(headers[i])) {
+                        input.inputMode = 'numeric';
+                        input.pattern = '\\d*';
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^\d]/g, '');
+                        });
+                        input.addEventListener('paste', function (e) {
+                            e.preventDefault();
+                        });
+                        input.addEventListener('drop', function (e) {
+                            e.preventDefault();
+                        });
+                        if (['Опт', '%'].includes(headers[i])) {
+                            input.addEventListener('input', recalcPrices);
+                        }
+                    }
+                }
+                td.appendChild(input);
+
+            }
+            const onoffSelect = row.querySelector('select[name="Статус"]');
+            const stockInput = row.querySelector('input[name="Нал"]');
+            if (onoffSelect && stockInput) {
+                onoffSelect.addEventListener('change', function () {
+                    if (this.value === 'выкл.') {
+                        stockInput.value = '0';
+                        stockInput.disabled = true;
+                    } else {
+                        stockInput.disabled = false;
+                    }
+                });
+            }
+            // 🛡️ Деактивируем форму добавления товара, чтобы не сработал submit дважды
+            const addBtn = document.querySelector('.sticky-input button[type="submit"]');
+            if (addBtn) {
+                addBtn.disabled = true;
+                addBtn.style.opacity = "0.4";
+                addBtn.style.cursor = "not-allowed";
+                addBtn.title = "Сначала завершите редактирование";
+            }
+            // Создаём форму
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/update/${table}/${itemId}`;
+            const hiddenId = document.createElement('input');
+            hiddenId.type = 'hidden';
+            hiddenId.name = 'Sklad';
+            hiddenId.value = itemId;
+            form.appendChild(hiddenId);
+            form.style.display = 'inline';
+
+            // Поддержка ENTER → отправка формы
+            cells.forEach((td, i) => {
+                const input = td.querySelector('input');
+                if (!input) return;
+
+                input.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        form.requestSubmit();
+                    }
+                });
+            });
+
+            // Перехватываем submit: добавляем актуальные значения в момент отправки
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                let valid = true;
+                let invalidFields = [];
+
+                // 🔧 Удаляем старые hidden поля, чтобы не было дублей
+                form.querySelectorAll('input[type="hidden"]').forEach(el => el.remove());
+
+                for (let i = 0; i < headers.length; i++) {
+                    if (!headers[i] || headers[i] === '№') continue;
+
+                    const element = cells[i].querySelector('input, select');
+                    if (element) {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = headers[i];
+                        let value = element.value.trim();
+
+                        if (numericFields.includes(headers[i])) {
+                            value = value.replace(/\s+/g, '').replace('р.', '').replace('%', '').trim();
+                            if (!value || !/^\d+$/.test(value)) {
+                                valid = false;
+                                invalidFields.push(headers[i]);
+                            }
+                        }
+
+                        hidden.value = value;
+                        form.appendChild(hidden);
+                    }
+                }
+
+                if (!valid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ошибка ввода',
+                        text: 'Поля: ' + invalidFields.join(', ') + ' должны содержать только цифры и не могут быть пустыми.',
+                    });
+                    return;
+                }
+
+                // 🧠 Сохраняем scrollY и Sklad
+                localStorage.setItem("highlight_art", itemId);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form)
+                }).then(response => {
+                    if (response.ok) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: '✅ Сохранено',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        isEditingRow = false;
+                        setTimeout(() => location.reload(), 500);
+                    } else {
+                        Swal.fire('Ошибка', 'Не удалось сохранить товар', 'error');
+                    }
+                }).catch(error => {
+                    console.error('Ошибка при сохранении:', error);
+                    Swal.fire('Ошибка', 'Произошла ошибка при отправке данных', 'error');
+                });
+            });
+            const editBtn = row.querySelector('.edit-btn');
+            if (editBtn) {
+                const parentCell = editBtn.closest('td');
+
+                // Удаляем только кнопку ✏️
+                editBtn.remove();
+
+                // Создаем кнопку "галочка"
+                const saveBtn = document.createElement('button');
+                saveBtn.type = 'submit';
+                saveBtn.innerText = '✅';
+                saveBtn.title = 'Сохранить';
+                saveBtn.style = 'background:none; border:none; color:green; cursor:pointer; font-size:18px;';
+
+                // Добавляем кнопку в форму
+                form.appendChild(saveBtn);
+
+                // Вставляем форму на место, где была кнопка ✏️
+                parentCell.insertBefore(form, parentCell.firstChild);
+            }
+        });
+    });
+    </script>
+
+    <script>
+    window.addEventListener("DOMContentLoaded", function () {
+        const highlightId = localStorage.getItem("highlight_art");
+        const selectedTable = "{{ selected_table }}";
+
+        const highlightColors = {
+            yandex: "#fdf7b2",
+            ozon: "#d5e4ff",
+            wildberries: "#efc1ed"
+        };
+
+        if (highlightId) {
+            const tryScrollToRow = () => {
+                const rows = document.querySelectorAll("tbody tr");
+                const headers = {{ table_data.columns.tolist() | tojson }};
+                const artIndex = headers.indexOf("Sklad");
+
+                for (const row of rows) {
+                    const cells = row.querySelectorAll("td");
+                    const artValue = cells[artIndex]?.innerText.trim();
+                    if (artValue === highlightId) {
+                        row.classList.add("highlighted");
+                        row.style.setProperty('--highlight-color', highlightColors[selectedTable] || "#fdf7b2");
+
+                        // Прокрутка к строке
+                        // Прокручиваем только таблицу, не сдвигая шапку страницы
+                        const tableWrapper = row.closest(".table-wrapper");
+                        if (tableWrapper) {
+                            const wrapperRect = tableWrapper.getBoundingClientRect();
+                            const rowRect = row.getBoundingClientRect();
+                            tableWrapper.scrollTop += rowRect.top
+                                - wrapperRect.top
+                                - (tableWrapper.clientHeight - rowRect.height) / 2;
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            // ⏳ Пробуем ждать появления строки с интервалами
+            let attempts = 0;
+            const maxAttempts = 20;
+            const interval = setInterval(() => {
+                if (tryScrollToRow() || attempts++ > maxAttempts) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+
+        if (highlightId) {
+            const rows2 = document.querySelectorAll("tbody tr");
+            const headers2 = {{ table_data.columns.tolist() | tojson }};
+            const artIndex2 = headers2.indexOf("Sklad");
+
+            rows2.forEach(row => {
+                const cells = row.querySelectorAll("td");
+                const artValue = cells[artIndex2]?.innerText.trim();
+                if (artValue === highlightId) {
+                    row.classList.add("highlighted");
+                    row.style.setProperty('--highlight-color', highlightColors[selectedTable] || "#fdf7b2");
+                }
+            });
+
+            // НЕ удаляем highlight_art — оставляем для будущих перезагрузок
+            // localStorage.removeItem("highlight_art");
+        }
+    });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const addForm = document.querySelector('form[action^="/add"]');
+        if (!addForm) return;
+
+        // ✅ Обязательные поля
+        const requiredFields = ['Sklad', 'Модель', 'Нал', 'Опт', '%'];
+
+        // Для Wildberries — оба поля обязательны
+        if ("{{ selected_table }}" === "wildberries") {
+            requiredFields.push('WB Barcode', 'WB Артикул');
+        }
+
+        addForm.addEventListener("submit", function (e) {
+            const formData = new FormData(addForm);
+            let hasError = false;
+            let missingFields = [];
+            let invalidNumericFields = [];
+
+            // Проверка обязательных полей
+            requiredFields.forEach(field => {
+                const value = (formData.get(field) || "").trim();
+                if (!value) {
+                    hasError = true;
+                    missingFields.push(field);
+                } else {
+                    // Проверка, если это числовое поле
+                    if (['Нал', 'Опт', '%', 'WB Barcode', 'WB Артикул', 'Sklad'].includes(field)) {
+                        if (!/^\d+$/.test(value)) {
+                            hasError = true;
+                            invalidNumericFields.push(field);
+                        }
+                    }
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                let msg = "";
+                if (missingFields.length > 0) {
+                    msg += "Заполните поля:\n• " + missingFields.join("\n• ") + "\n";
+                }
+                if (invalidNumericFields.length > 0) {
+                    msg += "В полях " + invalidNumericFields.join(", ") + " должны быть только цифры.";
+                }
+                alert(msg);
+            }
+        });
+    });
+    </script>
+
+
+    <script>
+    document.getElementById('manual-update-btn')?.addEventListener('click', function () {
+        const btn = this;
+        btn.textContent = "Обновление склада…";
+        btn.disabled = true;
+
+        fetch('/run_update', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert("❌ Ошибка при обновлении склада.");
+                btn.textContent = "Обновить склад";
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error("Ошибка:", err);
+            alert("⚠ Не удалось обновить склад.");
+            btn.textContent = "Обновить склад";
+            btn.disabled = false;
+        });
+    });
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const runButton = document.getElementById("automation-run-btn");
+        const freshness = document.getElementById("cycle-freshness");
+        const freshnessLabel = document.getElementById("cycle-freshness-label");
+        let renderedLastFinished = {{ automation_status.last_finished | tojson }};
+
+        if (!runButton || !freshness || !freshnessLabel) return;
+
+        function hasUnsavedTableChanges() {
+            if (typeof isEditingRow !== "undefined" && isEditingRow) return true;
+            const addForm = document.querySelector('form[action^="/add/"]');
+            if (!addForm) return false;
+            return Array.from(addForm.elements).some(element => {
+                if (!element.name || element.type === "hidden" || element.type === "submit" || element.disabled) return false;
+                return String(element.value || "").trim() !== "";
+            });
+        }
+
+        function reloadPageAfterCompletedCycle(status) {
+            const lastFinished = status.last_finished || null;
+            if (!lastFinished || lastFinished === renderedLastFinished) return;
+            if (hasUnsavedTableChanges()) {
+                freshnessLabel.textContent = "Данные обновлены";
+                freshness.title = "Страница обновится после сохранения изменений";
+                return;
+            }
+            const tableWrapper = document.querySelector(".table-wrapper");
+            if (tableWrapper) localStorage.setItem("tableScrollTop", String(tableWrapper.scrollTop));
+            window.location.reload();
+        }
+
+        function applyAutomationStatus(status) {
+            const headerStatus = document.getElementById("ymwb-header-status");
+            const headerDot = document.getElementById("ymwb-header-status-dot");
+            const headerLabel = document.getElementById("ymwb-header-status-label");
+            if (headerStatus && headerDot && headerLabel) {
+                const automatic = Boolean(status.enabled);
+                headerLabel.textContent = automatic ? "Автоматический" : "Ручной";
+                headerDot.className = "ymwb-status-dot status-" + (automatic ? "success" : "disabled");
+                headerStatus.title = automatic
+                    ? "Автоматический режим синхронизации"
+                    : "Ручной режим синхронизации";
+            }
+            runButton.disabled = Boolean(status.running);
+            freshness.className = "warehouse-freshness freshness-" + (status.freshness_status || "unknown");
+            freshnessLabel.textContent = status.freshness_label || "Нет данных";
+            freshness.title = status.freshness_title || "";
+        }
+
+        async function refreshAutomationStatus() {
+            try {
+                const response = await fetch("/automation/status", {cache: "no-store"});
+                if (response.ok) {
+                    const status = await response.json();
+                    applyAutomationStatus(status);
+                    reloadPageAfterCompletedCycle(status);
+                }
+            } catch (error) {
+                console.warn("Не удалось получить состояние фонового цикла", error);
+            }
+        }
+
+        runButton.addEventListener("click", async function () {
+            runButton.disabled = true;
+            runButton.textContent = "Обновление…";
+            try {
+                const response = await fetch("/automation/run", {method: "POST"});
+                if (!response.ok && response.status !== 409) throw new Error("run failed");
+                window.setTimeout(refreshAutomationStatus, 700);
+            } catch (error) {
+                alert("Не удалось запустить цикл.");
+            } finally {
+                runButton.textContent = "Обновить всё";
+                window.setTimeout(refreshAutomationStatus, 1200);
+            }
+        });
+
+        window.setInterval(refreshAutomationStatus, 5000);
+    });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const clickRows = document.querySelectorAll("tbody tr");
+        const selectedTable = "{{ selected_table }}";
+
+        let color = "#fdf7b2";  // Yandex по умолчанию
+        if (selectedTable === "ozon") color = "#d5e4ff";
+        if (selectedTable === "wildberries") color = "#efc1ed";
+
+        const clickHeaders = {{ table_data.columns.tolist() | tojson }};
+        const clickArtIndex = clickHeaders.indexOf("Sklad");
+
+        clickRows.forEach(row => {
+            row.addEventListener("click", function () {
+                if (isEditingRow) return; // 🚫 Запрещаем переключение выделения при редактировании
+
+                const cells = this.querySelectorAll("td");
+                const artValue = cells[clickArtIndex]?.innerText.trim();
+                const isHighlighted = this.classList.contains("highlighted");
+
+                // Снимаем выделение со всех
+                clickRows.forEach(r => r.classList.remove("highlighted"));
+
+                if (!isHighlighted) {
+                    this.classList.add("highlighted");
+                    this.style.setProperty('--highlight-color', color);
+                    if (artValue) {
+                        localStorage.setItem("highlight_art", artValue);
+                    }
+                } else {
+                    localStorage.removeItem("highlight_art");
+                }
+            });
+        });
+    });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("td.text-left").forEach(td => {
+            if (td.scrollWidth > td.clientWidth) {
+                td.setAttribute("title", td.textContent.trim());
+            }
+        });
+    });
+    </script>
+
+    {% if request.args.get('duplicate') %}
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ошибка добавления',
+                text: 'Товар с таким Sklad, Артикул, Модель, WB Barcode или WB Артикул уже существует.'
+            }).then(() => {
+                // удаляем параметр duplicate из URL
+                const url = new URL(window.location.href);
+                url.searchParams.delete('duplicate');
+                window.history.replaceState({}, document.title, url.pathname + url.search);
+            });
+        });
+    </script>
+    {% endif %}
+
+<script>
+let isEditingRow = false;
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("custom-search");
+  const clearButton = document.getElementById("clear-search-new");
+  const form = input?.closest("form");
+  if (!input || !clearButton || !form) return;
+
+  const debounceDelay = 450;
+  let searchTimer = 0;
+  let submittedValue = input.value.trim();
+  const focusStorageKey = `ymwb-search-focus:${window.location.pathname}`;
+
+  function rememberSearchFocus() {
+    if (document.activeElement !== input) {
+      sessionStorage.removeItem(focusStorageKey);
+      return;
+    }
+    sessionStorage.setItem(focusStorageKey, JSON.stringify({
+      start: input.selectionStart ?? input.value.length,
+      end: input.selectionEnd ?? input.value.length
+    }));
+  }
+
+  function restoreSearchFocus() {
+    const savedFocus = sessionStorage.getItem(focusStorageKey);
+    if (!savedFocus) return;
+    sessionStorage.removeItem(focusStorageKey);
+
+    try {
+      const caret = JSON.parse(savedFocus);
+      window.requestAnimationFrame(() => {
+        const valueLength = input.value.length;
+        const start = Math.min(Number(caret.start) || 0, valueLength);
+        const end = Math.min(Number(caret.end) || start, valueLength);
+        input.focus({ preventScroll: true });
+        input.setSelectionRange(start, end);
+      });
+    } catch (_) {
+      input.focus({ preventScroll: true });
+    }
+  }
+
+  function syncClearButton() {
+    clearButton.hidden = !input.value;
+  }
+
+  function submitSearch() {
+    window.clearTimeout(searchTimer);
+    const value = input.value.trim();
+    if (value === submittedValue) return;
+    submittedValue = value;
+    rememberSearchFocus();
+    localStorage.setItem("savedSearch", value);
+
+    const target = new URL(form.action, window.location.origin);
+    if (value) target.searchParams.set("search", value);
+    window.location.assign(target.pathname + target.search);
+  }
+
+  function scheduleSearch() {
+    syncClearButton();
+    window.clearTimeout(searchTimer);
+    if (input.value.trim() === submittedValue) return;
+    searchTimer = window.setTimeout(submitSearch, debounceDelay);
+  }
+
+  input.addEventListener("input", scheduleSearch);
+  input.addEventListener("search", scheduleSearch);
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    submitSearch();
+  });
+
+  clearButton.addEventListener("click", function () {
+    input.value = "";
+    syncClearButton();
+    input.focus();
+    submitSearch();
+  });
+
+  syncClearButton();
+  restoreSearchFocus();
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".letter-filter a").forEach(link => {
+        link.addEventListener("click", function (e) {
+            const currentLetter = new URLSearchParams(window.location.search).get("letter");
+            const thisLetter = this.textContent.trim();
+
+            if (currentLetter === thisLetter) {
+                e.preventDefault();
+                const url = new URL(window.location.href);
+                url.searchParams.delete("letter");
+                window.location.href = url.toString(); // ❌ снимаем фильтр
+            }
+        });
+    });
+});
+</script>
+<script>
+  // Сохраняем позицию только внутри таблицы
+  if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+  }
+
+  window.addEventListener("beforeunload", function () {
+      const tableWrapper = document.querySelector(".table-wrapper");
+      if (tableWrapper) {
+          localStorage.setItem("tableScrollTop", String(tableWrapper.scrollTop));
+      }
+  });
+
+  // Возвращаем страницу наверх, а таблицу — к прежней строке
+  window.addEventListener("DOMContentLoaded", function () {
+      localStorage.removeItem("scrollY");
+      window.scrollTo(0, 0);
+
+      const tableWrapper = document.querySelector(".table-wrapper");
+      const savedTableScrollTop = localStorage.getItem("tableScrollTop");
+      if (tableWrapper && savedTableScrollTop !== null) {
+          tableWrapper.scrollTop = parseInt(savedTableScrollTop, 10) || 0;
+          localStorage.removeItem("tableScrollTop");
+      }
+  });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("thead th a").forEach(link => {
+        link.addEventListener("click", function () {
+            // При сортировке — очищаем подсветку
+            localStorage.removeItem("highlight_art");
+        });
+    });
+});
+</script>
+
+<script>
+document.getElementById('run-unlisted-btn')?.addEventListener('click', function () {
+    const btn = this;
+    btn.disabled = true;
+
+    fetch('/run_unlisted')
+        .then(response => {
+            if (response.ok) {
+                showCustomAlert("Файл успешно создан: not_listed.xlsx");
+            } else {
+                showCustomAlert("Ошибка при создании файла", true);
+            }
+        })
+        .catch(err => {
+            console.error("Ошибка:", err);
+            showCustomAlert("Произошла ошибка при создании файла", true);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+});
+
+function showCustomAlert(message, isError = false) {
+    const alertBox = document.getElementById('custom-alert');
+    alertBox.textContent = message;
+    alertBox.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+    alertBox.style.color = isError ? '#721c24' : '#155724';
+    alertBox.style.borderColor = isError ? '#f5c6cb' : '#c3e6cb';
+    alertBox.style.display = 'block';
+
+    setTimeout(() => {
+        alertBox.style.display = 'none';
+    }, 3000);
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // При изменении строки поиска — сохраняем
+    const searchInput = document.getElementById("custom-search");
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            localStorage.setItem("savedSearch", this.value.trim());
+        });
+    }
+
+    // При клике на букву — сохраняем
+    document.querySelectorAll(".letter-filter a").forEach(link => {
+        link.addEventListener("click", function () {
+            const letter = this.textContent.trim();
+            const isActive = this.classList.contains("active");
+            if (isActive) {
+                localStorage.removeItem("savedLetter");
+            } else {
+                localStorage.setItem("savedLetter", letter);
+            }
+        });
+    });
+
+
+});
+</script>
+
+<!-- Кастомное уведомление -->
+<div id="custom-alert" style="
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 20px;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-size: 16px;
+    pointer-events: none;
+    width: fit-content;
+">
+    Файл успешно создан!
+</div>
+{% if request.args.get('added') %}
+<script>
+    sessionStorage.removeItem('add_form_data');
+</script>
+{% endif %}
+
+<script>
+// Если это первый заход на сайт (новая сессия) — сбрасываем выделенную строку
+(function () {
+    const sessionKey = 'session_start';
+    const highlightKey = 'highlight_art';
+
+    // Проверим: если sessionStorage ещё не содержит ключа, значит это первый заход
+    if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, '1');
+        localStorage.removeItem(highlightKey);  // сбрасываем выделение
+        console.log('[highlight] Новая сессия — выделение сброшено');
+    } else {
+        console.log('[highlight] Сессия продолжается — выделение сохраняем');
+    }
+})();
+</script>
+
+
+
+<script>
+(function(){
+  // ——— ссылки на DOM ———
+  const $overlay = document.getElementById('screen-overlay');
+  const $title   = document.getElementById('overlay-title');
+  const $note    = document.getElementById('overlay-note');
+
+  let BUSY = false;   // простая защита от повторных кликов
+
+  function showOverlay(title, note){
+    if (title) $title.textContent = title;
+    if (note)  $note.textContent  = note;
+    $overlay.removeAttribute('hidden');
+    document.body.style.cursor = 'progress';
+  }
+  function hideOverlay(){
+    $overlay.setAttribute('hidden','');
+    document.body.style.cursor = '';
+  }
+
+  // Человечные подписи
+  const MP_LABELS = { yandex: 'Yandex', ozon: 'Ozon', wildberries: 'Wildberries' };
+
+  // Унифицированный fetch JSON
+  async function postJSON(url){
+    const res = await fetch(url, { method: 'POST', headers: { 'X-Requested-With':'XMLHttpRequest' } });
+    // даже при 204 попробуем не падать
+    let data = null;
+    try { data = await res.json(); } catch(e){ data = null; }
+    if (!res.ok || !data || data.status !== 'ok'){
+      const msg = (data && data.message) ? data.message : `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // ——— основной обработчик ———
+  async function handleToggle(input){
+    if (BUSY) { input.checked = !input.checked; return; } // отменяем повтор
+    BUSY = true;
+    let operationSucceeded = false;
+    // отключим тумблеры, чтобы не «дребезжали»
+    document.querySelectorAll('.global-toggle, .supplier-toggle').forEach(el => el.disabled = true);
+
+    const isMarketToggle   = input.classList.contains('global-toggle');
+    const isSupplierToggle = input.classList.contains('supplier-toggle');
+
+    try {
+      if (isMarketToggle){
+        const market = (input.dataset.market || '').toLowerCase();
+        const label  = MP_LABELS[market] || market;
+        const mode   = input.checked ? 'Включение' : 'Отключение';
+        showOverlay(`${mode} маркетплейса: ${label}`, 'Идёт применение настроек…');
+        const data = await postJSON(`/toggle_stock/${encodeURIComponent(market)}`);
+        // фиксируем состояние фактом с сервера
+        input.checked = !!data.enabled;
+        operationSucceeded = true;
+
+      } else if (isSupplierToggle){
+        const supplier = (input.dataset.supplier || '').trim();
+        const mode     = input.checked ? 'Включение' : 'Отключение';
+        showOverlay(`${mode} поставщика: ${supplier}`, 'Идёт обновление остатков…');
+        const data = await postJSON(`/toggle_supplier/${encodeURIComponent(supplier)}`);
+        input.checked = !!data.enabled;
+        operationSucceeded = true;
+      }
+
+    } catch(err){
+      // откатить флажок, показать ошибку
+      input.checked = !input.checked;
+      hideOverlay();
+      await Swal.fire({
+        icon: 'error',
+        title: 'Ошибка переключения',
+        text: String(err.message || err),
+        confirmButtonText: 'ОК',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      });
+
+    } finally {
+      hideOverlay();
+      BUSY = false;
+      document.querySelectorAll('.global-toggle, .supplier-toggle').forEach(el => el.disabled = false);
+    }
+
+    // Обновляем таблицу и шапку только после успешного переключения.
+    if (operationSucceeded) location.reload();
+  }
+
+  // ——— перехватчик раньше всех (capture: true), гасит старые слушатели ———
+  document.addEventListener('change', function(e){
+    const t = e.target;
+    if (!t) return;
+    if (t.matches('.global-toggle, .supplier-toggle')){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      handleToggle(t);
+    }
+  }, true); // ⬅ capture:true
+
+  // ——— блокируем любую навигацию, пока BUSY (клики по вкладкам/алфавиту/ссылкам) ———
+  document.addEventListener('click', function(e){
+    if (!BUSY) return;
+    const a = e.target.closest('a');
+    if (a){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+})();
+</script>
+
+<script>
+(function() {
+  const supplierCols = ['Sklad', 'Invask', 'Okno', 'United'];
+  const headers = {{ table_data.columns.tolist() | tojson }};
+  const idx = {};
+  headers.forEach((h, i) => idx[h] = i);
+
+  // Вешаем обработчик клика по ячейкам поставщиков
+  document.querySelectorAll('.main-table tbody tr').forEach(tr => {
+    supplierCols.forEach(col => {
+      const colIdx = idx[col];
+      if (typeof colIdx !== 'number') return;
+      const td = tr.children[colIdx];
+      if (!td) return;
+
+      td.style.cursor = 'pointer'; // курсор "рука"
+
+      td.addEventListener('click', (e) => {
+        const val = td.innerText.trim();
+        if (val) {
+          navigator.clipboard.writeText(val).then(() => {
+            // показать всплывашку около курсора
+            const tooltip = document.getElementById('copy-tooltip');
+            tooltip.textContent = `скопировано: ${val}`;
+            tooltip.style.left = (e.clientX + 10) + 'px';
+            tooltip.style.top = (e.clientY + 10) + 'px';
+            tooltip.style.opacity = '1';
+
+            // скрыть через 1 секунду
+            setTimeout(() => {
+              tooltip.style.opacity = '0';
+            }, 1000);
+          }).catch(err => {
+            console.error('Ошибка копирования:', err);
+          });
+        }
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  // ——— ссылки на DOM ———
+  const $overlay = document.getElementById('screen-overlay');
+  const $title   = document.getElementById('overlay-title');
+  const $note    = document.getElementById('overlay-note');
+
+  let BUSY = false;   // простая защита от повторных кликов
+
+  function showOverlay(title, note){
+    if (title) $title.textContent = title;
+    if (note)  $note.textContent  = note;
+    $overlay.removeAttribute('hidden');
+  }
+  function hideOverlay(){
+    $overlay.setAttribute('hidden','');
+  }
+
+  // Человечные подписи
+  const MP_LABELS = { yandex: 'Yandex', ozon: 'Ozon', wildberries: 'Wildberries' };
+
+  // Унифицированный fetch JSON
+  async function postJSON(url){
+    const res = await fetch(url, { method: 'POST', headers: { 'X-Requested-With':'XMLHttpRequest' } });
+    // даже при 204 попытаемся не падать
+    let data = null;
+    try { data = await res.json(); } catch(e){ data = null; }
+    if (!res.ok || !data || (data.status && data.status !== 'ok')){
+      const msg = (data && data.message) ? data.message : `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // ——— основной обработчик ———
+  async function handleToggle(input){
+    if (BUSY) { input.checked = !input.checked; return; } // отменяем повтор
+    BUSY = true;
+
+    // Определяем цель: маркетплейс или поставщик
+    const isMarketToggle   = input.classList.contains('global-toggle');
+    const isSupplierToggle = input.classList.contains('supplier-toggle');
+
+    // Показываем оверлей с понятным текстом
+    if (isMarketToggle){
+      const market = (input.dataset.market || '').toLowerCase();
+      const label  = MP_LABELS[market] || market;
+      const mode   = input.checked ? 'Включение' : 'Отключение';
+      showOverlay(`${mode} маркетплейса: ${label}`, 'Идёт применение настроек…');
+      let operationSucceeded = false;
+      try {
+        const data = await postJSON(`/toggle_stock/${encodeURIComponent(market)}`);
+        // фиксируем состояние фактом с сервера
+        input.checked = !!data.enabled;
+        operationSucceeded = true;
+      } catch(err){
+        // откатить флажок, показать ошибку
+        input.checked = !input.checked;
+        hideOverlay();
+        await Swal.fire({
+          icon: 'error',
+          title: 'Ошибка переключения',
+          text: String(err.message || err),
+          confirmButtonText: 'ОК',
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
+      } finally {
+        hideOverlay();
+        BUSY = false;
+      }
+      // При ошибке остаёмся на странице, чтобы сообщение не исчезало.
+      if (operationSucceeded) location.reload();
+      return;
+    }
+
+    if (isSupplierToggle){
+      const supplier = (input.dataset.supplier || '').trim();
+      const mode     = input.checked ? 'Включение' : 'Отключение';
+      showOverlay(`${mode} поставщика: ${supplier}`, 'Идёт обновление остатков…');
+      let operationSucceeded = false;
+      try {
+        const data = await postJSON(`/toggle_supplier/${encodeURIComponent(supplier)}`);
+        input.checked = !!data.enabled;
+        operationSucceeded = true;
+      } catch(err){
+        input.checked = !input.checked;
+        hideOverlay();
+        await Swal.fire({
+          icon: 'error',
+          title: 'Ошибка переключения',
+          text: String(err.message || err),
+          confirmButtonText: 'ОК',
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
+      } finally {
+        hideOverlay();
+        BUSY = false;
+      }
+      if (operationSucceeded) location.reload();
+      return;
+    }
+  }
+
+  // ——— навешиваем перехватчик раньше всех (capture: true), чтобы не конфликтовать со старым кодом ———
+  document.addEventListener('change', function(e){
+    const t = e.target;
+    if (!t) return;
+    if (t.matches('.global-toggle, .supplier-toggle')){
+      // перехватываем и гасим дальнейшую обработку старыми слушателями
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      // запускаем наш контроллер
+      handleToggle(t);
+    }
+  }, true); // ⬅ capture:true
+})();
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function applyMarketplaceStates(data) {
+    if (!data || !data.market_states) return;
+    document.querySelectorAll("[data-market-status]").forEach(function (dot) {
+      const market = dot.dataset.marketStatus;
+      if (!Object.prototype.hasOwnProperty.call(data.market_states, market)) return;
+      const enabled = Boolean(data.market_states[market]);
+      dot.classList.toggle("is-on", enabled);
+      dot.classList.toggle("is-off", !enabled);
+      dot.setAttribute("aria-label", enabled ? "Включён" : "Отключён");
+      const link = dot.closest("a");
+      if (link) {
+        const name = market === "wildberries" ? "Wildberries" : (market === "yandex" ? "Yandex" : "Ozon");
+        link.title = `${name}: ${enabled ? "включён" : "отключён"}`;
+      }
+    });
+  }
+
+  async function refreshMarketplaceStates() {
+    try {
+      const response = await fetch("/market-schedule", {
+        headers: {"X-Requested-With": "XMLHttpRequest"},
+        cache: "no-store"
+      });
+      if (response.ok) applyMarketplaceStates(await response.json());
+    } catch (error) {
+      console.debug("Не удалось обновить статусы маркетплейсов", error);
+    }
+  }
+
+  window.setInterval(refreshMarketplaceStates, 5000);
+});
+</script><script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tableWrapper = document.querySelector(".table-wrapper");
+  if (!tableWrapper) return;
+
+  let resizeFrame = 0;
+
+  function fitTableToViewport() {
+    window.cancelAnimationFrame(resizeFrame);
+    resizeFrame = window.requestAnimationFrame(function () {
+      const top = tableWrapper.getBoundingClientRect().top;
+      const bottomGap = 8;
+      const availableHeight = Math.max(
+        160,
+        Math.floor(window.innerHeight - top - bottomGap)
+      );
+      tableWrapper.style.height = `${availableHeight}px`;
+      tableWrapper.style.maxHeight = `${availableHeight}px`;
+    });
+  }
+
+  window.addEventListener("resize", fitTableToViewport, {passive: true});
+  window.visualViewport?.addEventListener(
+    "resize",
+    fitTableToViewport,
+    {passive: true}
+  );
+  window.addEventListener("load", fitTableToViewport, {once: true});
+
+  if (window.ResizeObserver) {
+    const layoutObserver = new ResizeObserver(fitTableToViewport);
+    [
+      document.querySelector(".ymwb-header"),
+      document.querySelector(".app-toolbar"),
+      document.querySelector(".sticky-header"),
+      document.querySelector(".sticky-input")
+    ].filter(Boolean).forEach(element => layoutObserver.observe(element));
+  }
+
+  document.fonts?.ready.then(fitTableToViewport);
+  fitTableToViewport();
+});
+</script>
+</body>
+</html>
